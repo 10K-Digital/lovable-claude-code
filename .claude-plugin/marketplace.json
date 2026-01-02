@@ -1,20 +1,23 @@
 {
   "name": "10k-digital",
   "owner": {
-    "name": "10K Digital",
-    "url": "https://github.com/10K-Digital"
+    "name": "10K Digital"
   },
-  "description": "Official Claude Code plugins from 10K Digital",
+  "metadata": {
+    "description": "Official Claude Code plugins from 10K Digital"
+  },
   "plugins": [
     {
       "name": "lovable",
-      "source": ".",
+      "source": "./",
       "description": "Claude Code integration for Lovable.dev projects. Provides commands, skills, and context for working with Lovable projects via two-way GitHub sync, with integrations with Lovable Cloud's native Edge Functions, database migrations, and backend deployments.",
       "version": "1.1.0",
       "author": {
-        "name": "Felipe Matos from 10K Digital",
-        "url": "https://github.com/10K-Digital"
-      }
+        "name": "Felipe Matos from 10K Digital"
+      },
+      "homepage": "https://github.com/10K-Digital/lovable-claude-code",
+      "repository": "https://github.com/10K-Digital/lovable-claude-code",
+      "license": "MIT"
     }
   ]
 }
