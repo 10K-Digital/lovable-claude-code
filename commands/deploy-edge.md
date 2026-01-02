@@ -16,10 +16,14 @@ Check for Edge Function changes and generate Lovable deployment prompts.
    - Check for uncommitted changes
    - Check for unpushed commits to `main`
 
-3. **Detect new secrets**:
-   - Scan function code for `Deno.env.get("SECRET_NAME")`
-   - Compare against known secrets in CLAUDE.md
-   - Warn about missing secrets
+3. **Detect and validate secrets** (use secret-detection skill):
+   - Scan function code for `Deno.env.get("SECRET_NAME")` patterns
+   - Read secrets table from CLAUDE.md
+   - Cross-reference detected secrets with known status:
+     - ✅ In Lovable Cloud → OK
+     - ⚠️ Not configured → Warn user
+   - Check if any NEW secrets are referenced that aren't in CLAUDE.md
+   - Warn about missing secrets before deployment
 
 4. **Generate deployment prompt**:
 
@@ -92,18 +96,33 @@ Modified functions:
 - `send-email` - Updated email template
 - `process-payment` - Added refund handling
 
-⚠️ Uncommitted changes detected. Commit and push first:
-git add . && git commit -m "Update edge functions" && git push
+✅ All changes committed and pushed to main
+
+## Secret Validation
+
+Secrets used by functions:
+- RESEND_API_KEY (send-email)
+  Status: ✅ In Lovable Cloud
+- STRIPE_SECRET_KEY (process-payment)
+  Status: ⚠️ Not configured
+
+⚠️ **Missing secret detected:**
+Before deploying, add STRIPE_SECRET_KEY to Cloud → Secrets:
+1. Go to Cloud → Secrets in Lovable
+2. Click "Add secret"
+3. Enter: STRIPE_SECRET_KEY = [your value]
+4. Then run the prompt below
 
 📋 **LOVABLE PROMPT:**
 > "Deploy all edge functions"
 
 After deployment, verify:
 > "Show logs for send-email edge function"
+> "Show logs for process-payment edge function"
 
 💡 **Tip:** Automate deployments with yolo mode!
    Run: /lovable:yolo on
-   Benefits: No manual copy-paste, automatic testing
+   Benefits: No manual copy-paste, automatic testing, auto-run code tests
 ```
 
 ### Example 2: Yolo Mode Enabled (Automated)

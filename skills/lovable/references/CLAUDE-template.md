@@ -33,18 +33,30 @@
 
 ## Secrets
 
-| Name | Purpose |
-|------|---------|
-| OPENAI_API_KEY | AI features |
-| STRIPE_SECRET_KEY | Payments |
-| RESEND_API_KEY | Emails |
+| Name | Purpose | Status | Used In |
+|------|---------|--------|---------|
+| OPENAI_API_KEY | AI features | ⚠️ Not configured | chat-completion |
+| STRIPE_SECRET_KEY | Payments | ⚠️ Not configured | process-payment |
+| RESEND_API_KEY | Emails | ✅ In Lovable Cloud | send-email, send-welcome |
+
+**Legend:**
+- ✅ In Lovable Cloud - Secret already configured
+- ⚠️ Not configured - Needs setup in Cloud → Secrets
+
+**To add secrets:**
+1. Go to Cloud → Secrets in Lovable
+2. Click "Add secret"
+3. Enter name and value
+4. Run: `"Redeploy edge functions to pick up new secrets"`
 
 ## Edge Functions
 
-| Function | Purpose | Required Secrets |
-|----------|---------|------------------|
-| send-email | Send transactional emails | RESEND_API_KEY |
-| process-payment | Handle Stripe webhooks | STRIPE_SECRET_KEY |
+| Function | Purpose | Required Secrets | Status |
+|----------|---------|------------------|--------|
+| send-email | Send transactional emails | RESEND_API_KEY | ✅ Secret configured |
+| process-payment | Handle Stripe webhooks | STRIPE_SECRET_KEY | ⚠️ Secret not configured |
+
+**Warning:** Functions marked with ⚠️ will fail until secrets are added in Cloud → Secrets.
 
 ## Database Tables
 
@@ -61,23 +73,27 @@
 
 ## Yolo Mode Configuration (Beta)
 
-> ⚠️ Beta feature - uses browser automation to auto-submit Lovable prompts
+> ⚠️ Beta feature - uses browser automation to auto-submit Lovable prompts and run tests
 
 - **Status**: [on / off]
-- **Testing**: [on / off]  # Run verification tests after deployment
+- **Deployment Testing**: [on / off]  # Run verification tests after Lovable deployments
+- **Auto-run Tests**: [on / off]  # Run project tests after every git push
 - **Debug Mode**: [on / off]  # Verbose logging of automation steps
 - **Last Updated**: [timestamp]
 - **Operations Covered**:
-  - Edge function deployment
-  - Migration application
+  - Edge function deployment with verification
+  - Migration application with verification
+  - Automated code testing after every git push
 
-**Configure:** Run `/yolo on/off [--testing|--no-testing] [--debug]`
+**Configure:** Run `/lovable:yolo on/off [--testing|--no-testing] [--auto-tests|--no-auto-tests] [--debug]`
 
 **How it works:**
 - When yolo mode is on, I'll automatically navigate to Lovable and submit prompts
-- Testing verifies deployments (3 levels: basic, console errors, functional)
+- Deployment testing verifies deployments (3 levels: basic, console errors, functional)
+- Auto-run tests execute your project's test suite after every successful git push to main
 - Debug mode shows detailed browser automation logs
 - Always has manual fallback if automation fails
+- Test failures don't block deployments (manual review available)
 
 ## Quick Prompts Reference
 
