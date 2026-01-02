@@ -46,10 +46,10 @@ Open Claude Code and type the following instructions.
 
 ```bash
 # Add the marketplace
-/plugin marketplace add 10kdigital/lovable-claude-code
+/plugin marketplace add 10-kdigital/lovable-claude-code
 
 # Install the plugin
-/plugin install lovable-claude-code@10-kdigital
+/plugin install lovable-claude-code@10k-digital
 ```
 
 ### Local Installation
