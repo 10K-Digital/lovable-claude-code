@@ -75,6 +75,7 @@ All plugin commands use the `/lovable:` prefix to avoid conflicts with other plu
 | Command | Description |
 |---------|-------------|
 | `/lovable:init` | Interactive setup - scans repo, asks questions, generates CLAUDE.md |
+| `/lovable:sync` | Refresh CLAUDE.md with current Lovable Cloud state (secrets, functions, settings) |
 | `/lovable:deploy-edge` | Check Edge Function changes, get deployment prompts or auto-deploy |
 | `/lovable:apply-migration` | Check pending migrations, get prompts or auto-apply |
 | `/lovable:prompt` | Generate any Lovable prompt on demand |
