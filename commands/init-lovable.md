@@ -184,6 +184,9 @@ This is required for browser automation.
 
 4. **Generate CLAUDE.md** in project root with gathered info.
 
+   - **CRITICAL:** Include the "🚨 IMPORTANT: Always Commit and Push to GitHub" section at the top (after Project Overview)
+     - This reminds Claude to ALWAYS commit and push changes so they sync from GitHub to Lovable
+     - Without this instruction, Claude might make changes that don't get synced
    - Include yolo mode configuration if enabled
    - Set yolo_mode, yolo_testing, yolo_debug based on answers
    - Include lovable_url if provided

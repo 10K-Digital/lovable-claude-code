@@ -11,6 +11,35 @@
 - **Backend**: [Lovable Cloud / Own Supabase]
 - **Supabase Ref**: [SUPABASE_REF] (if own Supabase)
 
+## 🚨 IMPORTANT: Always Commit and Push to GitHub
+
+**This is critical:** Lovable syncs changes FROM GitHub. If you don't commit and push your changes, they won't sync back to Lovable!
+
+### ✅ ALWAYS do this:
+1. Make changes to your code
+2. **Commit changes**: `git add . && git commit -m "description"`
+3. **Push to main**: `git push origin main`
+4. Wait 1-2 minutes for Lovable to sync
+5. Verify changes in Lovable
+
+**Without pushing to GitHub, your changes are stuck in Claude Code and won't reach Lovable or your team.**
+
+### 🔄 GitHub → Lovable Sync Flow
+
+```
+Your changes in Claude Code
+    ↓
+git add . && git commit -m "Your message"
+    ↓
+git push origin main  ← REQUIRED!
+    ↓
+Lovable automatically syncs (1-2 minutes)
+    ↓
+Changes live in Lovable
+```
+
+---
+
 ## Workflow Rules
 
 ### ✅ Safe to edit and push to `main`:

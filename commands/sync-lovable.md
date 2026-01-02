@@ -43,18 +43,29 @@ Use `/lovable:sync` when:
 
 **High-level flow:**
 
-1. **Read CLAUDE.md** - Get current state (Lovable URL, secrets, functions)
-2. **Re-run secret detection** - Use same logic as `/lovable:init`:
+1. **Sync upstream changes** - Fetch any commits from GitHub (from team or Lovable):
+   - Check if remote has new commits
+   - Fetch from origin
+   - Merge if needed, handle conflicts
+   - Report what was synced down
+
+2. **Read CLAUDE.md** - Get current state (Lovable URL, secrets, functions)
+
+3. **Re-run secret detection** - Use same logic as `/lovable:init`:
    - Codebase scanning (Deno.env.get patterns, .env.example)
    - Browser automation (if Lovable URL available)
    - Context-based inference (OpenAI, Stripe, etc.)
-3. **Compare results** - New/removed/unchanged secrets
-4. **Update CLAUDE.md** - Add new secrets, update status, preserve user notes
-5. **Report changes** - Show what changed and recommendations
+
+4. **Compare results** - New/removed/unchanged secrets
+
+5. **Update CLAUDE.md** - Add new secrets, update status, preserve user notes
+
+6. **Report changes** - Show what changed and recommendations
 
 **Key difference from init:**
 - Init: Creates new CLAUDE.md from scratch
 - Sync: Updates existing CLAUDE.md, preserves all user customizations
+- Sync also pulls down changes from team/GitHub
 
 **Reused logic:**
 - `secret-detection.md` - Scan codebase and infer secrets
@@ -64,7 +75,69 @@ Use `/lovable:sync` when:
 
 ## Detailed Workflow
 
-### Step 1: Read CLAUDE.md
+### Step 1: Sync Upstream Changes from GitHub
+
+**Check for remote commits (from team or Lovable UI):**
+
+```bash
+# 1. Fetch latest from remote
+git fetch origin
+
+# 2. Check if local is behind remote
+git rev-list --count HEAD..origin/main
+# If output > 0, there are new commits to pull
+```
+
+**Merge strategy:**
+
+```bash
+# 3. If new commits exist:
+git merge origin/main
+
+# 4. If merge conflict occurs:
+#    - Show user which files have conflicts
+#    - Ask: overwrite local with remote OR keep local?
+#    - Resolve based on user choice
+#    - Complete merge
+```
+
+**Handle merge conflicts:**
+
+If conflicts detected:
+- **Option A: Accept theirs** (remote/team changes)
+  - `git checkout --theirs FILE` for each conflicted file
+  - Useful when team made important changes
+
+- **Option B: Keep ours** (local changes)
+  - `git checkout --ours FILE` for each conflicted file
+  - Useful when local edits are intentional
+
+- **Option C: Manual resolve**
+  - User edits files to resolve conflicts manually
+  - `git add` resolved files
+  - `git merge --continue`
+
+**Report results:**
+
+```
+✅ Git Sync Complete
+
+Remote commits pulled: 3
+Conflicts: 0
+Files updated: 5
+
+Synced from remote:
+  - package.json
+  - supabase/functions/send-email/index.ts
+  - src/components/Email.tsx
+  ...
+
+Ready to proceed with CLAUDE.md sync.
+```
+
+---
+
+### Step 2: Read CLAUDE.md
 
 Extract current configuration:
 - Lovable Project URL (Project Overview)
@@ -74,7 +147,7 @@ Extract current configuration:
 
 If Lovable URL missing: Fall back to manual mode
 
-### Step 2: Run Secret Detection
+### Step 3: Run Secret Detection
 
 **Reuse exact same logic as `/lovable:init`:**
 
@@ -96,7 +169,7 @@ If Lovable URL missing: Fall back to manual mode
 
 **No duplicated logic** - Same detection algorithm as init command
 
-### Step 3: Compare and Report Changes
+### Step 4: Compare and Report Changes
 
 Compare detection results with current CLAUDE.md:
 
@@ -119,7 +192,7 @@ Update Secrets table with detected secrets:
 - Update status column (✅ In Cloud / ⚠️ Not configured)
 - Preserve Purpose and Used In columns
 
-### Step 4: Update CLAUDE.md and Report
+### Step 5: Update CLAUDE.md and Report
 
 If user confirms (or with `--apply` flag):
 
@@ -129,6 +202,7 @@ If user confirms (or with `--apply` flag):
    - Update status indicators (✅/⚠️)
 
 2. **Preserve sections:**
+   - **🚨 IMPORTANT: Always Commit and Push to GitHub** (CRITICAL - never remove)
    - Project Conventions (user's notes)
    - Database Tables
    - Special Instructions
