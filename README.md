@@ -42,14 +42,14 @@ You can even turn yolo mode on. Im this case, Claude Code will use its native br
 
 ### Via Claude Code Plugin Marketplace (Recommended)
 
-Open Claude Code and type the following instructions.
+Open Claude Code and run these commands:
 
 ```bash
 # Add the marketplace
-/plugin marketplace add 10-kdigital/lovable-claude-code
+/plugin marketplace add 10K-Digital/lovable-claude-code
 
 # Install the plugin
-/plugin install lovable-claude-code@10k-digital
+/plugin install lovable@10k-digital
 ```
 
 ### Local Installation
@@ -214,4 +214,4 @@ MIT
 
 ## Contributing
 
-Issues and PRs welcome at [github.com/felipematos/claude-code-lovable-plugin](https://github.com/felipematos/claude-code-lovable-plugin)
+Issues and PRs welcome at [github.com/10K-Digital/lovable-claude-code](https://github.com/10K-Digital/lovable-claude-code)

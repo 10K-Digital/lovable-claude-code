@@ -4,12 +4,14 @@
   "version": "1.1.0",
   "author": {
     "name": "Felipe Matos from 10K Digital",
-    "url": "https://github.com/10kdigital"
+    "url": "https://github.com/10K-Digital"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/10kdigital/lovable-claude-code"
+    "url": "https://github.com/10K-Digital/lovable-claude-code"
   },
+  "homepage": "https://github.com/10K-Digital/lovable-claude-code",
+  "license": "MIT",
   "keywords": [
     "lovable",
     "lovable cloud",
