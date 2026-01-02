@@ -40,14 +40,16 @@ You can even turn yolo mode on. Im this case, Claude Code will use its native br
  - Make sure your browser is logged into your Lovable account with access to your project
  - Make sure Claude in Chrome extension permissions allows access to all Lovable URLs of your project.
 
-### Via GitHub (Recommended)
+### Via Claude Code Plugin Marketplace (Recommended)
+
+Open Claude Code and type the following instructions.
 
 ```bash
 # Add the marketplace
 /plugin marketplace add 10kdigital/lovable-claude-code
 
 # Install the plugin
-/plugin install lovable-claude-code@10kdigital
+/plugin install lovable-claude-code@10-kdigital
 ```
 
 ### Local Installation
