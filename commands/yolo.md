@@ -1,5 +1,5 @@
 ---
-description: Enable/disable yolo mode for automated Lovable deployments with browser automation. Control testing and debug options.
+description: Enable/disable yolo mode for automated Lovable deployments with browser automation. Control auto-deploy, testing, and debug options.
 ---
 
 # Yolo Mode Toggle
@@ -9,13 +9,15 @@ Enable or disable yolo mode for automated Lovable prompt submission via browser 
 ## Syntax
 
 ```bash
-/yolo [on|off] [--testing|--no-testing] [--debug]
+/yolo [on|off] [--auto-deploy|--no-auto-deploy] [--testing|--no-testing] [--debug]
 ```
 
 ## Arguments
 
-- `on` - Enable yolo mode (default: with testing, without debug)
+- `on` - Enable yolo mode (default: with auto-deploy and testing, without debug)
 - `off` - Disable yolo mode
+- `--auto-deploy` - Auto-deploy after git push (default when enabling)
+- `--no-auto-deploy` - Require manual /deploy-edge command
 - `--testing` - Enable all 3 testing levels after deployment (default when enabling)
 - `--no-testing` - Skip testing, only deploy
 - `--debug` - Enable verbose logging of browser automation steps
@@ -29,7 +31,7 @@ Extract the mode (`on`/`off`) and flags from the command:
 - If no arguments: proceed to step 7 (show status)
 - If `on`: proceed to enable yolo mode
 - If `off`: proceed to disable yolo mode
-- Parse optional flags: `--testing`, `--no-testing`, `--debug`
+- Parse optional flags: `--auto-deploy`, `--no-auto-deploy`, `--testing`, `--no-testing`, `--debug`
 
 ### 2. When Enabling Yolo Mode (`/yolo on`)
 
@@ -41,7 +43,8 @@ Extract the mode (`on`/`off`) and flags from the command:
 This feature uses browser automation to automatically submit Lovable prompts.
 
 Benefits:
-✅ No manual copy-paste needed
+✅ Auto-deploy after git push - no manual /deploy-edge command needed
+✅ No manual copy-paste of prompts
 ✅ Automatic deployment verification
 ✅ Saves time on every deployment
 
@@ -106,14 +109,17 @@ Wait for user confirmation. If no, abort.
 > ⚠️ Beta feature - uses browser automation to auto-submit Lovable prompts
 
 - **Status**: on
-- **Testing**: [on if --testing or default, off if --no-testing]
+- **Auto-Deploy**: [on if --auto-deploy or default, off if --no-auto-deploy]
+- **Deployment Testing**: [on if --testing or default, off if --no-testing]
+- **Auto-run Tests**: off
 - **Debug Mode**: [on if --debug, off otherwise]
 - **Last Updated**: [current timestamp]
 - **Operations Covered**:
+  - Automatic deployment detection after git push
   - Edge function deployment
   - Migration application
 
-**Configure:** Run `/yolo on/off [--testing|--no-testing] [--debug]`
+**Configure:** Run `/yolo on/off [--auto-deploy|--no-auto-deploy] [--testing|--no-testing] [--debug]`
 ```
 
 3. If `lovable_url` was added, update the Project Overview section
@@ -124,14 +130,22 @@ Wait for user confirmation. If no, abort.
 ✅ Yolo mode ENABLED
 
 Configuration:
-- Auto-deployment: ✅ ON
+- Auto-Deploy: [✅ ON / ⏸️ OFF] (deploy automatically after git push)
 - Testing: [✅ ON / ⏸️ OFF]
 - Debug: [✅ ON / OFF]
 
-From now on, when you make changes that need Lovable deployment:
-- I'll automatically detect them
+[if auto-deploy on]
+From now on, after you push backend changes to main:
+- I'll automatically detect edge function or migration changes
 - Navigate to your Lovable project
-- Submit the prompts for you
+- Submit the deployment prompts for you
+- No need to run /deploy-edge manually!
+
+[if auto-deploy off]
+When you make changes that need Lovable deployment:
+- Run /deploy-edge or /apply-migration
+- I'll automate the browser submission
+
 [if testing on] - Run 3 levels of verification tests
 [if debug on] - Show verbose browser automation details
 
@@ -140,7 +154,7 @@ Operations automated:
 ✅ Migration application
 
 To disable: /yolo off
-To change settings: /yolo on --no-testing  or  /yolo on --debug
+To change settings: /yolo on --no-auto-deploy  or  /yolo on --no-testing  or  /yolo on --debug
 ```
 
 ### 3. When Disabling Yolo Mode (`/yolo off`)
@@ -162,6 +176,7 @@ I'll still generate Lovable prompts for backend operations,
 but you'll need to copy-paste them manually into Lovable.
 
 Your previous settings are saved:
+- Auto-Deploy: [on/off]
 - Testing: [on/off]
 - Debug: [on/off]
 
@@ -181,24 +196,32 @@ If yolo mode is ON:
 ## Yolo Mode Configuration
 
 Status: ✅ ENABLED
+Auto-Deploy: [✅ ON / ⏸️ OFF] (auto-deploy after git push)
 Testing: ✅ ON (runs 3 verification levels)
 Debug: OFF
-Last updated: 2024-01-15 10:30:00
+Last updated: 2025-01-03 10:30:00
 
 Operations automated:
 - Edge function deployment
 - Migration application
 
+[if auto-deploy on]
 How it works:
-- When you run /deploy-edge or /apply-migration
-- I'll automatically navigate to Lovable
-- Submit the prompts via browser automation
+- After you push backend changes to main
+- I'll automatically detect and deploy them
+- No need to run /deploy-edge manually!
+
+[if auto-deploy off]
+How it works:
+- Run /deploy-edge or /apply-migration
+- I'll navigate to Lovable and submit prompts
 - Verify deployments succeed
 
 To modify:
-/yolo off              # Disable
-/yolo on --no-testing  # Skip testing
-/yolo on --debug       # Enable debug output
+/yolo off                 # Disable
+/yolo on --no-auto-deploy # Require manual deploy commands
+/yolo on --no-testing     # Skip testing
+/yolo on --debug          # Enable debug output
 ```
 
 If yolo mode is OFF or not configured:
@@ -210,7 +233,8 @@ Status: ⏸️ DISABLED
 Yolo mode automates Lovable prompt submission using browser automation.
 
 Benefits:
-✅ No manual copy-paste needed
+✅ Auto-deploy after git push - no manual commands needed
+✅ No manual copy-paste of prompts
 ✅ Automatic deployment verification
 ✅ Saves time on every deployment
 
@@ -220,20 +244,33 @@ To learn more: Check README.md or ask "What is yolo mode?"
 
 ### 5. Handling Flags
 
+**`--auto-deploy` flag (default):**
+- Set `Auto-Deploy: on` in CLAUDE.md
+- After successful git push to main:
+  - Automatically detect backend file changes
+  - Trigger deployment without manual command
+- No need to run `/deploy-edge` or `/apply-migration` manually
+
+**`--no-auto-deploy` flag:**
+- Set `Auto-Deploy: off` in CLAUDE.md
+- Backend changes are detected but NOT auto-deployed
+- User must run `/deploy-edge` or `/apply-migration` to trigger deployment
+- Browser automation still works when commands are run
+
 **`--testing` flag (default):**
-- Set `yolo_testing: on` in CLAUDE.md
+- Set `Deployment Testing: on` in CLAUDE.md
 - After deployments, run all 3 testing levels:
   - Level 1: Basic verification
   - Level 2: Console error checking
   - Level 3: Functional testing
 
 **`--no-testing` flag:**
-- Set `yolo_testing: off` in CLAUDE.md
+- Set `Deployment Testing: off` in CLAUDE.md
 - After deployments, skip all testing
 - Only deploy and confirm basic success
 
 **`--debug` flag:**
-- Set `yolo_debug: on` in CLAUDE.md
+- Set `Debug Mode: on` in CLAUDE.md
 - During browser automation, output verbose logs:
   - Each navigation step
   - Element selectors used
@@ -254,16 +291,25 @@ CLAUDE.md not found. Initialize the project first:
 ```
 ❌ Invalid syntax
 
-Usage: /yolo [on|off] [--testing|--no-testing] [--debug]
+Usage: /yolo [on|off] [--auto-deploy|--no-auto-deploy] [--testing|--no-testing] [--debug]
 
 Examples:
-  /yolo              # Show status
-  /yolo on           # Enable with testing
-  /yolo on --debug   # Enable with debug logs
-  /yolo off          # Disable
+  /yolo                    # Show status
+  /yolo on                 # Enable with auto-deploy and testing
+  /yolo on --no-auto-deploy # Enable without auto-deploy
+  /yolo on --debug         # Enable with debug logs
+  /yolo off                # Disable
 ```
 
 **Conflicting flags:**
+```
+❌ Cannot use --auto-deploy and --no-auto-deploy together
+
+Choose one:
+  /yolo on --auto-deploy      # Auto-deploy after git push (default)
+  /yolo on --no-auto-deploy   # Require manual deploy commands
+```
+
 ```
 ❌ Cannot use --testing and --no-testing together
 
@@ -274,11 +320,19 @@ Choose one:
 
 ### 7. Integration Notes
 
-After enabling yolo mode, the following commands will automatically trigger browser automation:
+**With auto-deploy enabled:**
+After a successful `git push origin main` that includes backend changes:
+- Claude automatically detects edge function or migration changes
+- Triggers browser automation without manual command
+- Deploys to Lovable and runs verification tests
+
+**With auto-deploy disabled (or with any yolo mode):**
+The following commands trigger browser automation:
 - `/deploy-edge` - Deploys edge functions to Lovable
 - `/apply-migration` - Applies database migrations
 
 The automation workflow is defined in `/skills/yolo/SKILL.md` and references.
+See `/skills/yolo/references/post-push-automation.md` for auto-deploy implementation.
 
 ## Example Outputs
 
@@ -292,7 +346,8 @@ $ /yolo on
 This feature uses browser automation to automatically submit Lovable prompts.
 
 Benefits:
-✅ No manual copy-paste needed
+✅ Auto-deploy after git push - no manual /deploy-edge command needed
+✅ No manual copy-paste of prompts
 ✅ Automatic deployment verification
 ✅ Saves time on every deployment
 
@@ -311,14 +366,15 @@ What is your Lovable project URL?
 ✅ Yolo mode ENABLED
 
 Configuration:
-- Auto-deployment: ✅ ON
+- Auto-Deploy: ✅ ON (deploy automatically after git push)
 - Testing: ✅ ON
 - Debug: OFF
 
-From now on, when you make changes that need Lovable deployment:
-- I'll automatically detect them
+From now on, after you push backend changes to main:
+- I'll automatically detect edge function or migration changes
 - Navigate to your Lovable project
-- Submit the prompts for you
+- Submit the deployment prompts for you
+- No need to run /deploy-edge manually!
 - Run 3 levels of verification tests
 
 Operations automated:
@@ -328,7 +384,35 @@ Operations automated:
 To disable: /yolo off
 ```
 
-### Example 2: Enable Without Testing
+### Example 2: Enable Without Auto-Deploy
+
+```
+$ /yolo on --no-auto-deploy
+
+⚠️ YOLO MODE (BETA)
+[... beta warning ...]
+
+Continue enabling yolo mode? yes
+
+✅ Yolo mode ENABLED
+
+Configuration:
+- Auto-Deploy: ⏸️ OFF (run /deploy-edge manually)
+- Testing: ✅ ON
+- Debug: OFF
+
+When you run /deploy-edge or /apply-migration:
+- I'll navigate to Lovable and submit prompts
+- Run verification tests
+
+Operations automated:
+✅ Edge function deployment
+✅ Migration application
+
+To enable auto-deploy: /yolo on --auto-deploy
+```
+
+### Example 3: Enable Without Testing
 
 ```
 $ /yolo on --no-testing
@@ -341,7 +425,7 @@ Continue enabling yolo mode? yes
 ✅ Yolo mode ENABLED
 
 Configuration:
-- Auto-deployment: ✅ ON
+- Auto-Deploy: ✅ ON
 - Testing: ⏸️ OFF (deployments only, no verification tests)
 - Debug: OFF
 
@@ -352,7 +436,7 @@ Operations automated:
 To enable testing: /yolo on --testing
 ```
 
-### Example 3: Enable with Debug
+### Example 4: Enable with Debug
 
 ```
 $ /yolo on --debug
@@ -365,7 +449,7 @@ Continue enabling yolo mode? yes
 ✅ Yolo mode ENABLED
 
 Configuration:
-- Auto-deployment: ✅ ON
+- Auto-Deploy: ✅ ON
 - Testing: ✅ ON
 - Debug: ✅ ON (verbose browser automation logs)
 
@@ -378,7 +462,7 @@ You'll see detailed output during deployments:
 To disable debug: /yolo on
 ```
 
-### Example 4: Check Status
+### Example 5: Check Status
 
 ```
 $ /yolo
@@ -386,21 +470,28 @@ $ /yolo
 ## Yolo Mode Configuration
 
 Status: ✅ ENABLED
+Auto-Deploy: ✅ ON (auto-deploy after git push)
 Testing: ✅ ON (runs 3 verification levels)
 Debug: ✅ ON
-Last updated: 2024-01-15 10:30:00
+Last updated: 2025-01-03 10:30:00
 
 Operations automated:
 - Edge function deployment
 - Migration application
 
+How it works:
+- After you push backend changes to main
+- I'll automatically detect and deploy them
+- No need to run /deploy-edge manually!
+
 To modify:
-/yolo off              # Disable
-/yolo on --no-testing  # Skip testing
-/yolo on               # Disable debug (keeps testing)
+/yolo off                 # Disable
+/yolo on --no-auto-deploy # Require manual deploy commands
+/yolo on --no-testing     # Skip testing
+/yolo on                  # Disable debug (keeps auto-deploy and testing)
 ```
 
-### Example 5: Disable
+### Example 6: Disable
 
 ```
 $ /yolo off
@@ -411,6 +502,7 @@ I'll still generate Lovable prompts for backend operations,
 but you'll need to copy-paste them manually into Lovable.
 
 Your previous settings are saved:
+- Auto-Deploy: on
 - Testing: on
 - Debug: on
 

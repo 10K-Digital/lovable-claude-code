@@ -105,24 +105,32 @@ Changes live in Lovable
 > ⚠️ Beta feature - uses browser automation to auto-submit Lovable prompts and run tests
 
 - **Status**: [on / off]
+- **Auto-Deploy**: [on / off]  # Auto-deploy to Lovable after git push (no manual command needed)
 - **Deployment Testing**: [on / off]  # Run verification tests after Lovable deployments
 - **Auto-run Tests**: [on / off]  # Run project tests after every git push
 - **Debug Mode**: [on / off]  # Verbose logging of automation steps
 - **Last Updated**: [timestamp]
 - **Operations Covered**:
+  - Automatic deployment detection after git push
   - Edge function deployment with verification
   - Migration application with verification
   - Automated code testing after every git push
 
-**Configure:** Run `/lovable:yolo on/off [--testing|--no-testing] [--auto-tests|--no-auto-tests] [--debug]`
+**Configure:** Run `/lovable:yolo on/off [--auto-deploy|--no-auto-deploy] [--testing|--no-testing] [--auto-tests|--no-auto-tests] [--debug]`
 
 **How it works:**
 - When yolo mode is on, I'll automatically navigate to Lovable and submit prompts
+- **Auto-Deploy** (NEW): Automatically deploys backend changes after git push - no need to run `/deploy-edge`
 - Deployment testing verifies deployments (3 levels: basic, console errors, functional)
 - Auto-run tests execute your project's test suite after every successful git push to main
 - Debug mode shows detailed browser automation logs
 - Always has manual fallback if automation fails
 - Test failures don't block deployments (manual review available)
+
+**Auto-Deploy Flow:**
+```
+git push origin main → Claude detects backend changes → Automatic deployment starts
+```
 
 ## Quick Prompts Reference
 

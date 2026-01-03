@@ -13,6 +13,19 @@ This document provides step-by-step instructions for automating Lovable prompt s
 - `lovable_url` configured in CLAUDE.md
 - `yolo_mode: on` in CLAUDE.md
 
+## Trigger Modes
+
+### 1. Auto-Deploy Mode (Recommended)
+When `auto_deploy: on`:
+- Triggered automatically after `git push origin main`
+- Claude detects backend file changes and starts deployment
+- No manual command needed
+
+### 2. Command-Triggered Mode
+When `auto_deploy: off` or using manual commands:
+- Triggered by `/deploy-edge` or `/apply-migration` commands
+- User explicitly initiates deployment
+
 ## Core Automation Workflow
 
 ### Step 1: Navigate to Lovable Project
@@ -970,6 +983,94 @@ Shows minimal progress indicators only.
 - Element finding: 5s
 - Lovable response: 180s (3 min)
 - Test requests: 30-60s
+
+---
+
+## Graceful Fallback Strategy
+
+**CRITICAL:** Browser automation MUST always fall back gracefully to manual instructions. Never leave the user stuck.
+
+### Fallback Principles
+
+1. **Always provide manual prompt** - Every failure message includes the Lovable prompt to copy-paste
+2. **Clear error explanation** - Tell user why automation failed
+3. **Actionable next steps** - Provide troubleshooting or workaround
+4. **Never block progress** - User can always complete task manually
+
+### Auto-Deploy Fallback Flow
+
+```
+git push origin main
+    ↓
+Detect backend changes
+    ↓
+Attempt automation
+    ↓
+┌─ Success → Show deployment summary
+│
+└─ Failure → Graceful fallback:
+      1. Show clear error message
+      2. Explain what went wrong
+      3. Provide manual Lovable prompt
+      4. Suggest troubleshooting steps
+      5. Offer to disable auto-deploy if needed
+```
+
+### Fallback Message Templates
+
+**For auto-deploy failures:**
+```
+❌ Auto-deploy failed: [specific error]
+
+Backend changes were pushed successfully to GitHub.
+Lovable will sync the code, but deployment requires a prompt.
+
+**Complete manually in Lovable:**
+
+📋 **LOVABLE PROMPT:**
+> "Deploy the [function-name] edge function"
+
+**Troubleshooting:**
+[Context-specific suggestions]
+
+💡 To disable auto-deploy: /lovable:yolo --no-auto-deploy
+```
+
+**For command-triggered failures:**
+```
+❌ Browser automation failed: [specific error]
+
+**Fallback - run this prompt in Lovable:**
+
+📋 **LOVABLE PROMPT:**
+> "[the prompt that was going to be submitted]"
+
+**What happened:**
+[Brief explanation]
+
+**Suggestions:**
+[How to fix or work around]
+```
+
+### Error-Specific Fallbacks
+
+| Error | Fallback Message |
+|-------|------------------|
+| Extension not installed | Prompt + link to install Chrome extension |
+| Not logged in | Prompt + "Please log in to Lovable" |
+| UI element not found | Prompt + "Lovable UI may have changed" + report link |
+| Timeout | Prompt + "Check Lovable manually, may still be processing" |
+| Deployment error | Prompt + error details + suggested fixes |
+| Network error | Prompt + "Check internet connection" |
+
+### Recovery Options
+
+After any failure, offer these options:
+
+1. **Manual completion** - Provide exact prompt to copy-paste
+2. **Retry** - User can try automation again
+3. **Change mode** - Suggest switching to manual mode if errors persist
+4. **Report issue** - Link to GitHub issues for persistent problems
 
 ---
 

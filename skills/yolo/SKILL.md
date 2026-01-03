@@ -4,10 +4,12 @@ description: |
   Browser automation skill for Lovable deployments. Activates when:
   - yolo_mode: on in CLAUDE.md
   - Running /deploy-edge or /apply-migration commands
+  - After git push when auto_deploy: on (automatic detection)
   - Any mention of "yolo mode", "automate Lovable", "browser automation"
 
   Automatically navigates to Lovable.dev and submits deployment prompts.
   Runs verification tests based on configuration.
+  Auto-deploys after git push when enabled.
 ---
 
 # Yolo Mode Automation Skill
@@ -22,7 +24,10 @@ This skill should be active when:
 2. **User runs deployment commands**:
    - `/deploy-edge` - Edge function deployment
    - `/apply-migration` - Database migration application
-3. **User mentions yolo automation**:
+3. **After git push to main** (if `auto_deploy: on`):
+   - Automatically detect backend file changes
+   - Trigger deployment without manual command
+4. **User mentions yolo automation**:
    - "use yolo mode"
    - "automate the Lovable prompt"
    - "submit this to Lovable automatically"
@@ -45,6 +50,42 @@ When yolo mode is enabled, automatically detect when Lovable prompts are needed:
 - Migration prompt generated
 
 See `references/detection-logic.md` for complete detection criteria.
+
+### 1.5. Auto-Deploy After Git Push (NEW)
+
+When `auto_deploy: on` is enabled, Claude automatically detects and deploys backend changes after a successful git push:
+
+**Trigger:** Successful `git push origin main`
+
+**Detection:**
+1. Analyze files changed in the push
+2. Check for `supabase/functions/` or `supabase/migrations/` changes
+3. If backend files found AND auto_deploy enabled → trigger automation
+
+**Flow:**
+```
+git push origin main [succeeds]
+    ↓
+Claude detects backend file changes
+    ↓
+Check: yolo_mode: on AND auto_deploy: on
+    ↓
+🤖 "Auto-deploy: Backend changes detected, starting deployment..."
+    ↓
+Execute browser automation
+    ↓
+Run verification tests
+    ↓
+Show deployment summary
+```
+
+**Graceful Fallback:**
+If auto-deploy fails for any reason:
+- Show clear error message
+- Provide manual prompt as fallback
+- Never block the user
+
+See `references/post-push-automation.md` for complete implementation.
 
 ### 2. Browser Automation Workflow
 
@@ -129,10 +170,19 @@ The skill reads these fields from CLAUDE.md:
 ## Yolo Mode Configuration (Beta)
 
 - **Status**: on
-- **Testing**: on
+- **Auto-Deploy**: on
+- **Deployment Testing**: on
+- **Auto-run Tests**: off
 - **Debug Mode**: off
-- **Last Updated**: 2024-01-15 10:30:00
+- **Last Updated**: 2025-01-03 10:30:00
 ```
+
+**Configuration options:**
+- **Status**: Enable/disable yolo mode entirely
+- **Auto-Deploy**: Auto-deploy after git push (no manual command needed)
+- **Deployment Testing**: Run verification tests after deployments
+- **Auto-run Tests**: Run project test suite after git push
+- **Debug Mode**: Show verbose automation logs
 
 And from Project Overview:
 ```markdown
@@ -381,7 +431,12 @@ This skill uses these reference documents:
    - File change detection
    - Integration with commands
 
-3. **`references/testing-procedures.md`**
+3. **`references/post-push-automation.md`** (NEW)
+   - Auto-deploy after git push
+   - Graceful fallback handling
+   - User notification templates
+
+4. **`references/testing-procedures.md`**
    - Level 1: Basic verification
    - Level 2: Console checking
    - Level 3: Functional testing
@@ -392,8 +447,16 @@ This skill uses these reference documents:
 
 ```
 1. Read CLAUDE.md
-2. Look for "yolo_mode: on"
+2. Look for "Status: on" in Yolo Mode Configuration
 3. If not found or "off", yolo mode is disabled
+```
+
+### Check if Auto-Deploy is Enabled
+
+```
+1. Read CLAUDE.md
+2. Check both "Status: on" AND "Auto-Deploy: on"
+3. Both must be enabled for auto-deploy to trigger
 ```
 
 ### Execute Automation
@@ -406,13 +469,27 @@ This skill uses these reference documents:
 5. Report results
 ```
 
+### Auto-Deploy After Git Push
+
+```
+1. Git push succeeds
+2. Check for backend file changes (supabase/functions/, supabase/migrations/)
+3. If changes found AND auto_deploy enabled:
+   - Trigger automation automatically
+   - Show: "🤖 Auto-deploy: Backend changes detected..."
+4. If auto_deploy disabled:
+   - Show notification only
+   - Suggest running /deploy-edge or /apply-migration
+```
+
 ### Handle Errors
 
 ```
 1. Try automation
 2. If fails, capture error
-3. Show error + manual fallback
+3. Show error + manual fallback prompt
 4. Never block user - always provide manual option
+5. Suggest troubleshooting based on error type
 ```
 
 ---
