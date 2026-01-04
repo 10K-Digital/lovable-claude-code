@@ -2,6 +2,82 @@
 
 All notable changes to the Lovable Claude Code plugin will be documented in this file.
 
+## [1.4.1] - 2025-01-04
+
+### Fixed
+
+#### Auto-Push Independence
+- **Auto-push is now independent of yolo mode** - can be enabled/disabled separately
+- Auto-push can be ON while yolo mode is OFF (for manual deployment workflow)
+- Yolo mode still REQUIRES auto-push to be ON (enforced when enabling)
+- Disabling yolo mode no longer disables auto-push
+
+#### Updated Question Flow in /init-lovable
+- Moved auto-push question (Q9) before yolo mode question (Q11)
+- Auto-push is now asked independently, not conditionally
+- Yolo mode checks for auto-push and prompts to enable if needed
+- Clearer separation of concerns in CLAUDE.md template
+
+#### Updated /yolo Command
+- Removed `--auto-push` and `--no-auto-push` flags (auto-push configured separately)
+- Added auto-push requirement check when enabling yolo mode
+- Prompts user to enable auto-push if it's off
+- Disabling yolo mode preserves auto-push setting
+
+#### Benefits of This Change
+- ✅ Use auto-push without yolo mode for faster git workflow
+- ✅ Clearer mental model - two independent features with one dependency
+- ✅ More flexibility in configuration options
+
+## [1.4.0] - 2025-01-04
+
+### Added
+
+#### Auto-Push to GitHub Feature
+- **Automatic commit and push after task completion** - Claude automatically commits and pushes your changes to GitHub after successfully completing a task
+- **New auto-push question in `/init-lovable`** - During initialization, users are asked if they want auto-push enabled (default: yes, recommended)
+- **New `Auto-Push to GitHub` setting** in CLAUDE.md Yolo Mode Configuration
+  - Enabled by default when yolo mode is on
+  - Disable with `--no-auto-push` flag if you prefer manual git commands
+- **Smart commit messages** - Claude creates descriptive commit messages following your project's commit style
+- **Safety checks before pushing**:
+  - Verifies task completed successfully (no errors)
+  - Checks for actual file changes
+  - Confirms on main branch
+  - Never force pushes without permission
+
+#### Complete Workflow Automation
+With auto-push enabled alongside yolo mode, the full workflow is now automated:
+```
+1. You ask Claude to make changes
+2. Claude completes the task successfully
+3. Claude automatically commits with descriptive message
+4. Claude pushes to main branch on GitHub
+5. GitHub syncs to Lovable (frontend changes)
+6. Auto-deploy triggers for backend changes (if enabled)
+```
+
+#### Enhanced Commands
+- Updated `/yolo` command with `--auto-push` and `--no-auto-push` flags
+- Updated syntax: `/yolo [on|off] [--auto-push|--no-auto-push] [--auto-deploy|--no-auto-deploy] [--testing|--no-testing] [--debug]`
+- Auto-push instructions added to lovable skill
+
+### Benefits
+- ✅ **Zero manual git commands** - No more forgetting to commit/push
+- ✅ **Instant sync** to GitHub → Lovable
+- ✅ **Seamless workflow** from code changes to production
+- ✅ **Works perfectly** with existing auto-deploy feature
+
+### How It Works
+
+When auto-push is enabled, after each successful task:
+1. Claude checks `git status` for changes
+2. If changes exist, stages all files with `git add .`
+3. Creates a descriptive commit message
+4. Commits with `git commit -m "message"`
+5. Pushes to main with `git push origin main`
+6. If yolo mode auto-deploy is also on, deployment triggers automatically
+
 ## [1.3.0] - 2025-01-03
 
 ### Added

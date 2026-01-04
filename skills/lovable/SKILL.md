@@ -151,6 +151,86 @@ project/
 - Feature branches don't deploy until merged
 - Lovable syncs within 1-2 minutes of push
 
+## Auto-Push to GitHub (Independent Feature)
+
+When `Auto-Push to GitHub: on` is configured in CLAUDE.md (separate from Yolo Mode):
+
+**Important:** Auto-push is independent of yolo mode:
+- ✅ Auto-push can be ON while yolo mode is OFF
+- ✅ Auto-push can be ON while yolo mode is ON
+- ❌ Auto-push CANNOT be OFF if yolo mode is ON (yolo requires auto-push)
+
+### When to Auto-Push
+
+After **successfully completing a task** where you made code changes:
+
+1. **Check for changes:**
+   ```bash
+   git status
+   ```
+
+2. **If there are changes to commit:**
+   - Stage all changes: `git add .`
+   - Create descriptive commit message following the project's commit style
+   - Commit: `git commit -m "message"`
+   - Push to main: `git push origin main`
+
+3. **Commit message format:**
+   - Use the project's commit message style (check recent commits with `git log`)
+   - Be descriptive about what changed
+   - Example: "Add email notifications to send-email edge function"
+   - Example: "Update user profile component with avatar upload"
+   - Example: "Fix authentication bug in login flow"
+
+### When NOT to Auto-Push
+
+❌ **Skip auto-push if:**
+- The task was NOT successful (errors occurred, task incomplete)
+- No file changes were made
+- User explicitly said not to push
+- Currently on a feature branch (not main)
+- User is just asking questions or exploring code
+
+### Auto-Push Workflow Example
+
+```
+User: "Add email notifications to the send-email function"
+     ↓
+You: Make the code changes
+     ↓
+Check: Auto-Push enabled in CLAUDE.md?
+     ↓
+Yes: Run git commands automatically
+     ↓
+Output:
+"✅ Changes completed and pushed to GitHub!
+
+Committed: Add email notifications to send-email edge function
+Pushed to: origin/main
+
+[If yolo mode is also on:]
+🤖 Auto-deploy will now trigger to deploy these changes to Lovable..."
+```
+
+### Important Notes
+
+- **Always inform the user** when you auto-push
+- **Show the commit message** you used
+- **Verify git push succeeded** before claiming success
+- **Handle errors gracefully** - if push fails, inform user and suggest manual push
+- **Check you're on main branch** before pushing
+- **Never force push** without explicit user permission
+
+### Safety Checks
+
+Before auto-pushing, verify:
+
+1. ✅ Auto-Push is enabled in CLAUDE.md
+2. ✅ Task completed successfully (no errors)
+3. ✅ There are actual file changes (`git status` shows changes)
+4. ✅ Currently on main branch (`git branch --show-current`)
+5. ✅ No merge conflicts or git errors
+
 ## Yolo Mode - Automated Deployments (Beta)
 
 When `yolo_mode: on` in CLAUDE.md, deployments are automated via browser automation:

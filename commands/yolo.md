@@ -9,19 +9,19 @@ Enable or disable yolo mode for automated Lovable prompt submission via browser 
 ## Syntax
 
 ```bash
-/yolo [on|off] [--auto-deploy|--no-auto-deploy] [--testing|--no-testing] [--debug]
+/yolo [on|off] [--testing|--no-testing] [--debug]
 ```
 
 ## Arguments
 
-- `on` - Enable yolo mode (default: with auto-deploy and testing, without debug)
-- `off` - Disable yolo mode
-- `--auto-deploy` - Auto-deploy after git push (default when enabling)
-- `--no-auto-deploy` - Require manual /deploy-edge command
+- `on` - Enable yolo mode (default: with testing, without debug; requires auto-push)
+- `off` - Disable yolo mode (does not affect auto-push)
 - `--testing` - Enable all 3 testing levels after deployment (default when enabling)
 - `--no-testing` - Skip testing, only deploy
 - `--debug` - Enable verbose logging of browser automation steps
 - (no arguments) - Show current yolo mode status
+
+**Note:** Yolo mode requires auto-push to be enabled. If auto-push is off, you'll be prompted to enable it.
 
 ## Instructions
 
@@ -67,7 +67,28 @@ Wait for user confirmation. If no, abort.
    Run /init-lovable first to set up the project.
    ```
 
-2. Read CLAUDE.md and check for `lovable_url` field:
+2. Check if auto-push is enabled:
+   - Read CLAUDE.md and look for "Auto-Push to GitHub: on"
+   - If auto-push is off or not found, show:
+     ```
+     ⚠️ Yolo mode requires auto-push to be enabled
+
+     Auto-push is currently disabled. Yolo mode needs auto-push to automatically
+     commit and push your changes before triggering deployments.
+
+     Enable auto-push now? (yes/no)
+     ```
+   - If user says "yes", update CLAUDE.md to enable auto-push and continue
+   - If user says "no", abort yolo mode activation:
+     ```
+     ❌ Cannot enable yolo mode without auto-push
+
+     To use yolo mode, auto-push must be enabled. You can:
+     1. Enable auto-push manually in CLAUDE.md
+     2. Run this command again and accept enabling auto-push
+     ```
+
+3. Read CLAUDE.md and check for `lovable_url` field:
    - If missing, ask user:
      ```
      What is your Lovable project URL?
@@ -101,15 +122,26 @@ Wait for user confirmation. If no, abort.
 **c) Update CLAUDE.md:**
 
 1. Read current CLAUDE.md content
-2. Add or update the yolo mode configuration section:
+2. Ensure auto-push configuration exists (should be separate from yolo mode):
+
+```markdown
+## Auto-Push Configuration
+
+- **Auto-Push to GitHub**: on
+- **Last Updated**: [current timestamp]
+
+[... rest of auto-push section ...]
+```
+
+3. Add or update the yolo mode configuration section:
 
 ```markdown
 ## Yolo Mode Configuration (Beta)
 
 > ⚠️ Beta feature - uses browser automation to auto-submit Lovable prompts
+> ⚠️ Requires auto-push to be enabled
 
 - **Status**: on
-- **Auto-Deploy**: [on if --auto-deploy or default, off if --no-auto-deploy]
 - **Deployment Testing**: [on if --testing or default, off if --no-testing]
 - **Auto-run Tests**: off
 - **Debug Mode**: [on if --debug, off otherwise]
@@ -118,11 +150,12 @@ Wait for user confirmation. If no, abort.
   - Automatic deployment detection after git push
   - Edge function deployment
   - Migration application
+  - Automated testing after code push
 
-**Configure:** Run `/yolo on/off [--auto-deploy|--no-auto-deploy] [--testing|--no-testing] [--debug]`
+**Configure:** Run `/yolo on/off [--testing|--no-testing] [--debug]`
 ```
 
-3. If `lovable_url` was added, update the Project Overview section
+4. If `lovable_url` was added, update the Project Overview section
 
 **d) Confirm Enablement:**
 
@@ -130,31 +163,28 @@ Wait for user confirmation. If no, abort.
 ✅ Yolo mode ENABLED
 
 Configuration:
-- Auto-Deploy: [✅ ON / ⏸️ OFF] (deploy automatically after git push)
 - Testing: [✅ ON / ⏸️ OFF]
 - Debug: [✅ ON / OFF]
 
-[if auto-deploy on]
-From now on, after you push backend changes to main:
-- I'll automatically detect edge function or migration changes
-- Navigate to your Lovable project
-- Submit the deployment prompts for you
-- No need to run /deploy-edge manually!
+Prerequisites:
+✅ Auto-push is enabled (required for yolo mode)
 
-[if auto-deploy off]
-When you make changes that need Lovable deployment:
-- Run /deploy-edge or /apply-migration
-- I'll automate the browser submission
+Workflow:
+1. You ask me to make changes
+2. I complete the task successfully
+3. Auto-push: I automatically commit and push to GitHub
+4. Yolo mode: I detect backend changes and auto-deploy to Lovable
 
 [if testing on] - Run 3 levels of verification tests
 [if debug on] - Show verbose browser automation details
 
 Operations automated:
+✅ Automatic deployment detection after git push
 ✅ Edge function deployment
 ✅ Migration application
 
-To disable: /yolo off
-To change settings: /yolo on --no-auto-deploy  or  /yolo on --no-testing  or  /yolo on --debug
+To disable yolo mode: /yolo off
+To change settings: /yolo on --no-testing  or  /yolo on --debug
 ```
 
 ### 3. When Disabling Yolo Mode (`/yolo off`)
@@ -166,6 +196,7 @@ To change settings: /yolo on --no-auto-deploy  or  /yolo on --no-testing  or  /y
    - Set `Status: off`
    - Keep other settings for when user re-enables
    - Update `Last Updated` timestamp
+3. **Do NOT change auto-push setting** - auto-push remains independent
 
 **b) Confirm Disablement:**
 
@@ -176,11 +207,13 @@ I'll still generate Lovable prompts for backend operations,
 but you'll need to copy-paste them manually into Lovable.
 
 Your previous settings are saved:
-- Auto-Deploy: [on/off]
 - Testing: [on/off]
 - Debug: [on/off]
 
-To re-enable: /yolo on
+Note: Auto-push is still enabled and works independently of yolo mode.
+To disable auto-push: Edit CLAUDE.md and set "Auto-Push to GitHub: off"
+
+To re-enable yolo mode: /yolo on
 ```
 
 ### 4. When No Arguments (`/yolo`)
@@ -244,19 +277,6 @@ To learn more: Check README.md or ask "What is yolo mode?"
 
 ### 5. Handling Flags
 
-**`--auto-deploy` flag (default):**
-- Set `Auto-Deploy: on` in CLAUDE.md
-- After successful git push to main:
-  - Automatically detect backend file changes
-  - Trigger deployment without manual command
-- No need to run `/deploy-edge` or `/apply-migration` manually
-
-**`--no-auto-deploy` flag:**
-- Set `Auto-Deploy: off` in CLAUDE.md
-- Backend changes are detected but NOT auto-deployed
-- User must run `/deploy-edge` or `/apply-migration` to trigger deployment
-- Browser automation still works when commands are run
-
 **`--testing` flag (default):**
 - Set `Deployment Testing: on` in CLAUDE.md
 - After deployments, run all 3 testing levels:
@@ -303,14 +323,6 @@ Examples:
 
 **Conflicting flags:**
 ```
-❌ Cannot use --auto-deploy and --no-auto-deploy together
-
-Choose one:
-  /yolo on --auto-deploy      # Auto-deploy after git push (default)
-  /yolo on --no-auto-deploy   # Require manual deploy commands
-```
-
-```
 ❌ Cannot use --testing and --no-testing together
 
 Choose one:
@@ -320,14 +332,20 @@ Choose one:
 
 ### 7. Integration Notes
 
-**With auto-deploy enabled:**
-After a successful `git push origin main` that includes backend changes:
+**Relationship with auto-push:**
+- Auto-push and yolo mode are configured separately in CLAUDE.md
+- Auto-push can be on while yolo mode is off (manual deployment workflow)
+- Yolo mode REQUIRES auto-push to be on (enforced when enabling)
+- Disabling yolo mode does NOT disable auto-push
+
+**Workflow when yolo mode is enabled:**
+After a successful `git push origin main` (triggered by auto-push) that includes backend changes:
 - Claude automatically detects edge function or migration changes
 - Triggers browser automation without manual command
 - Deploys to Lovable and runs verification tests
 
-**With auto-deploy disabled (or with any yolo mode):**
-The following commands trigger browser automation:
+**Manual deployment with yolo mode:**
+Even with yolo mode on, you can still manually trigger deployments:
 - `/deploy-edge` - Deploys edge functions to Lovable
 - `/apply-migration` - Applies database migrations
 

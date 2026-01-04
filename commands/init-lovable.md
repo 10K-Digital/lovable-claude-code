@@ -116,12 +116,38 @@ Any special context I should know?
 Want me to document main database tables? (yes/no)
 ```
 
-### Question 9: Special Instructions
+### Question 9: Auto-Push to GitHub
+```
+⚡ AUTO-PUSH TO GITHUB
+
+When enabled, Claude will automatically commit and push your changes to GitHub
+after every successful task completion - no manual git commands needed!
+
+Benefits:
+✅ Instant sync to GitHub → Lovable
+✅ No more forgetting to commit/push changes
+✅ Seamless workflow from code → production
+✅ Required for yolo mode automation
+
+How it works:
+1. You ask Claude to make changes
+2. Claude completes the task successfully
+3. Claude automatically commits with descriptive message
+4. Claude pushes to main branch on GitHub
+5. GitHub syncs to Lovable (frontend changes instantly)
+
+Enable auto-push to GitHub? (yes/no)
+Default: yes (recommended)
+```
+
+**Note:** This setting is independent of yolo mode, but yolo mode requires auto-push to be enabled.
+
+### Question 10: Special Instructions
 ```
 Any project conventions or special instructions?
 ```
 
-### Question 10: Yolo Mode (Beta)
+### Question 11: Yolo Mode (Beta)
 ```
 ⚠️ YOLO MODE (BETA) - Browser Automation for Lovable
 
@@ -143,9 +169,20 @@ Enable yolo mode? (yes/no)
 Default: no
 ```
 
-If user answers "yes", ask Question 11. If "no", skip to CLAUDE.md generation.
+**Important:** If user wants to enable yolo mode but answered "no" to auto-push (Question 9):
+```
+⚠️ Yolo mode requires auto-push to be enabled.
 
-### Question 11: Yolo Testing and Auto-Run Tests (if yes to Q10)
+Auto-push is currently disabled. To enable yolo mode, auto-push must be turned on.
+
+Enable auto-push now? (yes/no)
+```
+
+If user says "yes", enable both yolo mode and auto-push. If "no", disable yolo mode and continue.
+
+If user answers "yes" to yolo mode (and auto-push is already enabled), ask Question 12. If "no" to yolo mode, skip to CLAUDE.md generation.
+
+### Question 12: Yolo Testing and Auto-Run Tests (if yes to Q11)
 ```
 Configure yolo mode:
 
@@ -172,7 +209,7 @@ Auto-run tests will:
 Timeout: 60 seconds per test run
 ```
 
-### Question 12: Lovable Project URL (if not answered in Q5)
+### Question 13: Lovable Project URL (if not answered in Q5)
 ```
 What is your Lovable project URL?
 (e.g., https://lovable.dev/projects/abc123)
@@ -180,7 +217,7 @@ What is your Lovable project URL?
 This is required for browser automation.
 ```
 
-**Note:** Only ask if user skipped Q5 and is enabling yolo mode.
+**Note:** Only ask if user skipped Q5 and is enabling yolo mode (Q11).
 
 4. **Generate CLAUDE.md** in project root with gathered info.
 
@@ -255,29 +292,55 @@ This is required for browser automation.
 ## Project Conventions
 [user input]
 
+## Auto-Push Configuration
+
+- **Auto-Push to GitHub**: [on/off based on Q9 answer, default: on]
+- **Last Updated**: [current timestamp]
+
+**How auto-push works:**
+When enabled, I'll automatically commit and push changes after each successful task:
+1. You ask me to make changes
+2. I complete the task successfully
+3. I automatically commit with a descriptive message
+4. I push to main branch on GitHub
+5. GitHub syncs to Lovable (frontend changes appear instantly)
+
+**Note:** Auto-push works independently of yolo mode, but yolo mode requires it to be enabled.
+
+**To disable:** Run `/lovable:auto-push off` (or edit this file directly)
+
 ## Yolo Mode Configuration (Beta)
 [ONLY include if user enabled yolo mode]
 
 > ⚠️ Beta feature - uses browser automation to auto-submit Lovable prompts
+> ⚠️ Requires auto-push to be enabled
 
-- **Status**: [on/off based on Q10 answer]
-- **Deployment Testing**: [on/off based on Q11 answer, default: on]
+- **Status**: [on/off based on Q11 answer]
+- **Deployment Testing**: [on/off based on Q12 answer, default: on]
 - **Auto-run Tests**: [on/off - run tests after every git push]
 - **Debug Mode**: off
 - **Last Updated**: [current timestamp]
 - **Operations Covered**:
+  - Automatic deployment detection after git push
   - Edge function deployment
   - Migration application
   - Automated testing after code push
 
 **Configure:** Run `/lovable:yolo on/off [--testing|--no-testing] [--debug]`
 
-**How it works:**
-- When yolo mode is on, I'll automatically navigate to Lovable and submit prompts
+**How yolo mode works:**
+- When yolo mode is on, after auto-push completes, I'll automatically navigate to Lovable and submit deployment prompts
 - Deployment testing verifies deployments (3 levels: basic, console errors, functional)
 - Auto-run tests execute your project's test suite after every git push
 - Debug mode shows detailed browser automation logs
 - Always has manual fallback if automation fails
+
+**Workflow with both enabled:**
+1. You ask me to make changes
+2. I complete the task successfully
+3. Auto-push: I commit and push to GitHub
+4. Yolo mode: I detect backend changes and auto-deploy to Lovable
+5. Done - zero manual commands needed!
 
 ## Quick Prompts
 | Task | Prompt |

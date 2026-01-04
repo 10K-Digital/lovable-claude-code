@@ -9,8 +9,9 @@ Stop copy-pasting between Lovable and Claude. Stop wrestling with two-way sync. 
 ### **What You Get:**
 
 ✨ **Edit Lovable projects right in your IDE** with all of Claude Code's power
-🚀 **Auto-deploy after git push** - no manual commands needed (NEW in v1.3.0!)
-🤖 **Automatic deployments** (yolo mode) - no manual copy-paste needed
+⚡ **Auto-push to GitHub** - automatic commit and push after every task (NEW in v1.4.0!)
+🚀 **Auto-deploy to Lovable** - no manual commands needed (v1.3.0)
+🤖 **Complete workflow automation** - from code changes to production
 💰 **Save credits** by using your Claude subscription for heavy lifting
 🔄 **Zero friction syncing** between your code, GitHub, and Lovable Cloud
 🛡️ **Automatic secret detection** - never forget a required API key
@@ -75,30 +76,40 @@ Result: ✅ Function deployed, tests pass, you're informed
 You: "Add email notifications"
      ↓
 Claude Code: Creates the code, detects needed secrets
+        ✅ Automatically commits changes
+        ✅ Pushes to GitHub
              ↓
-You: git push origin main
-     ↓
 Claude: 🤖 Detects backend changes automatically
         🤖 Navigates to Lovable
         ✅ Submits deployment
         ✅ Runs verification tests
         ✅ Confirms success
 
-Done. Zero manual work. No commands needed!
+Done. Zero manual work. No git commands. No deploy commands!
 ```
 
-**NEW in v1.3.0:** With auto-deploy enabled, just push your code—Claude handles the rest!
+**NEW in v1.4.0:** With auto-push enabled, Claude automatically commits and pushes your changes!
+**NEW in v1.3.0:** With auto-deploy enabled, Claude automatically deploys to Lovable after git push!
 
 ---
 
 ## **Key Features That Save You Hours**
 
-### 🚀 **Auto-Deploy After Git Push** (NEW!)
-Push backend changes to main, and Claude automatically deploys to Lovable. No commands, no copy-paste, no context switching. Just `git push` and watch it deploy.
+### ⚡ **Auto-Push to GitHub** (NEW in v1.4.0!)
+After completing any task, Claude automatically commits and pushes your changes to GitHub. No manual git commands needed!
 
 ```
-git push origin main → Claude detects changes → Automatic deployment → Tests pass → Done!
+Make changes → Task complete → Auto-commit → Auto-push → Changes in GitHub!
 ```
+
+### 🚀 **Auto-Deploy to Lovable** (v1.3.0)
+Push backend changes to main, and Claude automatically deploys to Lovable. No commands, no copy-paste, no context switching.
+
+```
+Auto-push to GitHub → Claude detects changes → Automatic deployment → Tests pass → Done!
+```
+
+**Complete automation:** With both features enabled, Claude handles everything from code changes to production deployment!
 
 ### 🔐 **Smart Secret Detection**
 Claude Code automatically finds every secret your functions need—by scanning your code. No more "why is this function failing??"—we tell you upfront: "You need STRIPE_WEBHOOK_SECRET."
@@ -212,41 +223,49 @@ Total: 6 minutes
 = **54% time savings**
 ```
 
-### **With This Plugin (Yolo Mode + Auto-Deploy):**
+### **With This Plugin (Yolo Mode + Auto-Push + Auto-Deploy):**
 ```
 1. Make changes in Claude Code (5 min)
-2. git push origin main (30 sec)
+   → Auto-commits changes
+   → Auto-pushes to GitHub
    → Auto-detects backend changes
    → Auto-deploys to Lovable
    → Auto-runs tests
-Total: 5.5 minutes
-= **58% time savings** + **zero commands needed**
+Total: 5 minutes
+= **62% time savings** + **ZERO manual commands needed**
 ```
 
 ---
 
 ## **Advanced Features**
 
-### **Yolo Mode (Auto-Deployment)**
+### **Yolo Mode (Complete Automation)**
 ```bash
-/lovable:yolo on                    # Enable with auto-deploy and testing (recommended)
+/lovable:yolo on                    # Enable everything: auto-push, auto-deploy, testing (recommended)
+/lovable:yolo on --no-auto-push     # Require manual git commands
 /lovable:yolo on --no-auto-deploy   # Require manual /deploy-edge commands
 /lovable:yolo on --no-testing       # Skip tests to go faster
 /lovable:yolo on --debug            # See automation logs
 /lovable:yolo off                   # Disable automation
 ```
 
-**Auto-Deploy (NEW in v1.3.0):**
-With yolo mode on, just push to main and Claude automatically:
+**Auto-Push (NEW in v1.4.0):**
+With auto-push enabled, after completing each task Claude automatically:
+- Checks for file changes
+- Commits with descriptive message
+- Pushes to main branch on GitHub
+
+**Auto-Deploy (v1.3.0):**
+With auto-deploy enabled, after git push Claude automatically:
 - Detects backend file changes (edge functions, migrations)
 - Navigates to your Lovable project
 - Submits deployment prompts
 - Runs verification tests (3 levels)
 - Reports success/failure instantly
 
-**No more `/deploy-edge` commands needed!**
+**Complete automation:** Enable both for a fully automated workflow from code changes to production!
 
-Use `--no-auto-deploy` if you prefer manual control over when deployments happen.
+Use `--no-auto-push` or `--no-auto-deploy` if you prefer manual control.
 
 ### **Sync Command (Stay In Sync)**
 ```bash
@@ -385,7 +404,18 @@ Edit `CLAUDE.md` to customize anything—Claude Code reads and respects your con
 
 ## **Version History**
 
-**v1.3.0** (Latest) ⭐
+**v1.4.1** (Latest) ⭐
+- **Auto-push independence** - works separately from yolo mode!
+- Auto-push can be ON while yolo mode is OFF (manual deployment)
+- Yolo mode requires auto-push (enforced when enabling)
+- Clearer configuration and mental model
+
+**v1.4.0**
+- **Auto-push to GitHub** - automatic commit and push after task completion!
+- Complete workflow automation when combined with yolo mode
+- Smart commit messages following your project's style
+
+**v1.3.0**
 - **Auto-deploy after git push** - no manual commands needed!
 - New `--auto-deploy` / `--no-auto-deploy` flags
 - Improved graceful fallbacks
