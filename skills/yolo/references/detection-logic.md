@@ -185,27 +185,105 @@ Add this logic at the end of `/apply-migration` command:
 
 ---
 
-## Proactive Detection (Future Enhancement)
+## Proactive Detection: Auto-Deploy After Git Push
 
-Not implemented in current version, but could be added:
+When `auto_deploy: on` is enabled, Claude automatically detects and deploys backend changes after a successful git push to main.
 
-**After git push to main:**
+### Activation Criteria
+
+Auto-deploy triggers when ALL conditions are met:
+1. `yolo_mode: on` in CLAUDE.md
+2. `auto_deploy: on` in CLAUDE.md
+3. `git push origin main` completed successfully
+4. Push included changes to `supabase/functions/` or `supabase/migrations/`
+
+### Detection After Git Push
+
+**Step 1: Analyze pushed files**
 ```
-1. Detect files changed in push
-2. If supabase/functions/ or supabase/migrations/ modified:
-   - Show notification:
-     "🤖 Yolo mode detected backend changes.
-      Starting automated deployment..."
-   - Auto-trigger appropriate automation
+After: git push origin main [succeeds]
+
+1. Get files changed in push:
+   Run: git diff --name-only HEAD~[n]..HEAD
+   (where n = number of commits pushed)
+
+2. Filter for backend files:
+   - Edge functions: supabase/functions/**/*
+   - Migrations: supabase/migrations/*.sql
 ```
 
-**Watching for file changes:**
+**Step 2: Check configuration**
 ```
-1. Monitor supabase/functions/ and supabase/migrations/
-2. On file save + commit + push:
-   - Auto-detect operation needed
-   - Trigger automation immediately
+1. Read CLAUDE.md
+2. Check yolo_mode and auto_deploy settings
+3. Branch based on settings:
+   - Both ON → Proceed with automation
+   - yolo_mode ON, auto_deploy OFF → Notify only
+   - yolo_mode OFF → Show manual prompts
 ```
+
+**Step 3: Execute or notify**
+```
+If auto_deploy: on:
+  - Show: "🤖 Auto-deploy: Backend changes detected..."
+  - Execute browser automation
+  - Run tests if enabled
+  - Show summary
+
+If auto_deploy: off:
+  - Show: "📦 Backend changes detected. Run /deploy-edge to deploy."
+  - Don't auto-execute
+```
+
+### Example Auto-Deploy Flow
+
+```
+User pushes changes including supabase/functions/send-email/index.ts
+
+Claude detects:
+  ✅ Push to main successful
+  ✅ Backend files changed: supabase/functions/send-email/
+  ✅ yolo_mode: on
+  ✅ auto_deploy: on
+
+🤖 Auto-Deploy Triggered
+
+Backend changes detected in your push:
+- Edge functions: send-email
+
+⏳ Step 1/7: Navigating to Lovable project...
+✅ Step 2/7: Located chat interface
+✅ Step 3/7: Submitted prompt: "Deploy the send-email edge function"
+⏳ Step 4/7: Waiting for Lovable response...
+✅ Step 5/7: Deployment confirmed
+⏳ Step 6/7: Running verification tests...
+✅ Step 7/7: All tests passed
+
+## Auto-Deploy Summary
+**Trigger:** git push to main
+**Function:** send-email
+**Status:** ✅ Success
+**Duration:** 38 seconds
+```
+
+### Graceful Fallback
+
+If auto-deploy fails for ANY reason, fall back gracefully:
+
+```
+❌ Auto-deploy failed: [reason]
+
+Fallback - complete manually in Lovable:
+
+📋 **LOVABLE PROMPT:**
+> "Deploy the send-email edge function"
+
+[Troubleshooting suggestions based on error]
+```
+
+**Never block the user** - always provide manual options.
+
+See `references/post-push-automation.md` for complete implementation details.
 
 ---
 
@@ -219,7 +297,9 @@ Not implemented in current version, but could be added:
 3. Find: "## Yolo Mode Configuration (Beta)"
 4. Extract fields:
    - Status: on/off
-   - Testing: on/off
+   - Auto-Deploy: on/off (NEW)
+   - Deployment Testing: on/off
+   - Auto-run Tests: on/off
    - Debug Mode: on/off
 5. Return configuration object
 ```
@@ -229,18 +309,36 @@ Not implemented in current version, but could be added:
 ## Yolo Mode Configuration (Beta)
 
 - **Status**: on
-- **Testing**: on
+- **Auto-Deploy**: on
+- **Deployment Testing**: on
+- **Auto-run Tests**: off
 - **Debug Mode**: off
-- **Last Updated**: 2024-01-15 10:30:00
+- **Last Updated**: 2025-01-03 10:30:00
 ```
 
 **Parsed result:**
 ```javascript
 {
   yolo_mode: "on",
+  auto_deploy: "on",
   yolo_testing: "on",
+  auto_tests: "off",
   yolo_debug: "off",
-  last_updated: "2024-01-15 10:30:00"
+  last_updated: "2025-01-03 10:30:00"
+}
+```
+
+**Auto-deploy decision logic:**
+```
+if (yolo_mode === "on" && auto_deploy === "on") {
+  // Automatically deploy after git push
+  triggerAutoDeployment();
+} else if (yolo_mode === "on") {
+  // Notify but don't auto-deploy
+  showDeploymentNotification();
+} else {
+  // Show manual prompts
+  showManualPrompts();
 }
 ```
 
