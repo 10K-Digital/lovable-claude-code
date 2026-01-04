@@ -1,32 +1,19 @@
 ---
-description: Re-sync secrets and backend information from Lovable Cloud. Updates CLAUDE.md with latest project state using browser automation and manual fallback.
+description: Re-synchronize CLAUDE.md with current state from Lovable Cloud and GitHub. Powered by sync-agent for autonomous multi-phase synchronization.
 ---
 
 # Sync Lovable Project State
 
-Re-synchronize CLAUDE.md with current state from Lovable Cloud, including secrets, Edge Functions, and project information.
+Re-synchronize CLAUDE.md with current state from multiple sources using the autonomous **sync-agent**.
 
 ## Overview
 
-The sync command refreshes your project configuration by:
-1. Connecting to Lovable Cloud (if URL available)
-2. Extracting current secrets, functions, and settings
-3. Comparing with CLAUDE.md to detect changes
-4. Updating CLAUDE.md with latest information
-5. Reporting what changed and what needs action
-
-## Existing Workflows Reused
-
-This command reuses browser automation and detection patterns from the init flow:
-
-| Component | Source | Reuses |
-|-----------|--------|--------|
-| **Secrets Extraction** | `skills/yolo/references/secrets-extraction.md` | Browser automation to navigate to Cloud → Secrets, extract secret names, fallback to manual |
-| **Secret Detection** | `skills/lovable/references/secret-detection.md` | Detection patterns for extracting secrets from codebase, purpose inference, merging results |
-| **Error Handling** | `secrets-extraction.md` + `secret-detection.md` | Timeout strategies, login handling, fallback mechanisms |
-| **CLAUDE.md Updates** | `skills/lovable/references/CLAUDE-template.md` | Template format for Secrets table with Status/Used In columns |
-
-**No new automation patterns needed** - Reuses proven workflows from init and yolo skills.
+The sync command delegates to the **sync-agent** (`agents/sync-agent.md`) for autonomous multi-phase synchronization:
+1. Git synchronization (fetch, merge, conflict handling)
+2. Secret discovery (codebase scan, .env.example, Lovable Cloud)
+3. State comparison (identify changes)
+4. Update proposal (generate diff, preserve user customizations)
+5. Application (write CLAUDE.md if approved)
 
 ## When to Use
 
@@ -39,206 +26,11 @@ Use `/lovable:sync` when:
 - ✅ Production URL or settings changed
 - ✅ CLAUDE.md file was deleted or corrupted
 
-## Instructions
-
-**High-level flow:**
-
-1. **Sync upstream changes** - Fetch any commits from GitHub (from team or Lovable):
-   - Check if remote has new commits
-   - Fetch from origin
-   - Merge if needed, handle conflicts
-   - Report what was synced down
-
-2. **Read CLAUDE.md** - Get current state (Lovable URL, secrets, functions)
-
-3. **Re-run secret detection** - Use same logic as `/lovable:init`:
-   - Codebase scanning (Deno.env.get patterns, .env.example)
-   - Browser automation (if Lovable URL available)
-   - Context-based inference (OpenAI, Stripe, etc.)
-
-4. **Compare results** - New/removed/unchanged secrets
-
-5. **Update CLAUDE.md** - Add new secrets, update status, preserve user notes
-
-6. **Report changes** - Show what changed and recommendations
-
-**Key difference from init:**
-- Init: Creates new CLAUDE.md from scratch
-- Sync: Updates existing CLAUDE.md, preserves all user customizations
-- Sync also pulls down changes from team/GitHub
-
-**Reused logic:**
-- `secret-detection.md` - Scan codebase and infer secrets
-- `secrets-extraction.md` - Browser automation to Cloud → Secrets
-- Same comparison algorithm
-- Same CLAUDE.md template format
-
-## Detailed Workflow
-
-### Step 1: Sync Upstream Changes from GitHub
-
-**Check for remote commits (from team or Lovable UI):**
-
-```bash
-# 1. Fetch latest from remote
-git fetch origin
-
-# 2. Check if local is behind remote
-git rev-list --count HEAD..origin/main
-# If output > 0, there are new commits to pull
-```
-
-**Merge strategy:**
-
-```bash
-# 3. If new commits exist:
-git merge origin/main
-
-# 4. If merge conflict occurs:
-#    - Show user which files have conflicts
-#    - Ask: overwrite local with remote OR keep local?
-#    - Resolve based on user choice
-#    - Complete merge
-```
-
-**Handle merge conflicts:**
-
-If conflicts detected:
-- **Option A: Accept theirs** (remote/team changes)
-  - `git checkout --theirs FILE` for each conflicted file
-  - Useful when team made important changes
-
-- **Option B: Keep ours** (local changes)
-  - `git checkout --ours FILE` for each conflicted file
-  - Useful when local edits are intentional
-
-- **Option C: Manual resolve**
-  - User edits files to resolve conflicts manually
-  - `git add` resolved files
-  - `git merge --continue`
-
-**Report results:**
-
-```
-✅ Git Sync Complete
-
-Remote commits pulled: 3
-Conflicts: 0
-Files updated: 5
-
-Synced from remote:
-  - package.json
-  - supabase/functions/send-email/index.ts
-  - src/components/Email.tsx
-  ...
-
-Ready to proceed with CLAUDE.md sync.
-```
+**Recommended frequency**: Weekly (if team collaboration), or before important deployments
 
 ---
 
-### Step 2: Read CLAUDE.md
-
-Extract current configuration:
-- Lovable Project URL (Project Overview)
-- Current secrets list and status
-- Current Edge Functions list
-- Last sync timestamp
-
-If Lovable URL missing: Fall back to manual mode
-
-### Step 3: Run Secret Detection
-
-**Reuse exact same logic as `/lovable:init`:**
-
-1. **Codebase scanning** (from `secret-detection.md`):
-   - Scan `supabase/functions/**/*.ts` for `Deno.env.get("SECRET")`
-   - Parse `.env.example` files
-   - Context-based inference (OpenAI, Stripe, Resend, etc.)
-
-2. **Browser automation** (from `secrets-extraction.md`):
-   - If Lovable URL provided: Navigate to `https://lovable.dev/projects/PROJECT_ID?view=cloud`
-   - Extract secret names from Cloud → Secrets
-   - Timeout: 45 seconds
-   - Graceful fallback if unavailable
-
-3. **Merge results**:
-   - Combine codebase + browser extraction
-   - Deduplicate
-   - Note which secrets are in Cloud vs. need setup
-
-**No duplicated logic** - Same detection algorithm as init command
-
-### Step 4: Compare and Report Changes
-
-Compare detection results with current CLAUDE.md:
-
-```
-New secrets (detected but not in CLAUDE.md):
-  → Alert user, ask to add
-
-Removed secrets (in CLAUDE.md but not detected):
-  → Alert user, ask if intentional
-
-Status changes:
-  → Update ✅/⚠️ indicators
-
-Unchanged:
-  → No action needed
-```
-
-Update Secrets table with detected secrets:
-- Add new rows for new secrets
-- Update status column (✅ In Cloud / ⚠️ Not configured)
-- Preserve Purpose and Used In columns
-
-### Step 5: Update CLAUDE.md and Report
-
-If user confirms (or with `--apply` flag):
-
-1. **Update Secrets table:**
-   - Add new secrets with Status and Used In columns
-   - Preserve Purpose column and user notes
-   - Update status indicators (✅/⚠️)
-
-2. **Preserve sections:**
-   - **🚨 IMPORTANT: Always Commit and Push to GitHub** (CRITICAL - never remove)
-   - Project Conventions (user's notes)
-   - Database Tables
-   - Special Instructions
-   - Yolo Mode Configuration
-   - Quick Prompts
-
-3. **Report changes:**
-   ```
-   ✅ SYNC COMPLETE
-
-   Changes made:
-   - Added 2 new secrets to Secrets table
-   - Updated status for 4 existing secrets
-   - Last sync timestamp updated
-
-   Next steps:
-   - Review changes
-   - Run /lovable:deploy-edge if needed
-   ```
-
-**If automation unavailable:**
-```
-⚠️ SYNC PARTIAL - Manual mode
-
-Browser automation unavailable after 45 seconds.
-
-Codebase detection found:
-- 3 secrets from Edge Functions
-- Suggest checking Cloud manually for new ones
-
-CLAUDE.md updated with codebase findings.
-To get Lovable Cloud secrets:
-  /lovable:sync --manual
-```
-
-## Command Flags
+## Command Usage
 
 ```bash
 /lovable:sync                    # Interactive: Show changes, ask before updating
@@ -249,62 +41,230 @@ To get Lovable Cloud secrets:
 /lovable:sync --force-rescan    # Ignore cached results, rescan everything
 ```
 
-## Manual Sync Mode
+---
 
-If browser automation unavailable or user chooses manual:
+## Instructions
+
+### Step 1: Parse Command Flags
+
+Determine agent mode from user flags:
 
 ```
-📋 MANUAL SYNC MODE
+Flags provided → Agent mode:
 
-Please provide current information from Lovable:
-
-1. Current secrets in Cloud → Secrets:
-   (Enter comma-separated secret names, or paste the list)
-
-2. Current Edge Functions:
-   (Enter comma-separated function names, or describe)
-
-3. Production URL status:
-   (Is https://my-app.lovable.app live? yes/no)
-
-4. Any other changes or notes:
-   (Describe what changed since last sync)
-
-I'll compare with CLAUDE.md and update as needed.
+(no flags)         → interactive (default)
+--apply            → auto-apply
+--dry-run          → dry-run
+--manual           → manual
+--debug            → debug
+--force-rescan     → invalidate cache, full rescan
 ```
+
+**Multiple flags allowed**: e.g., `--dry-run --debug` combines preview + verbose logging
+
+### Step 2: Invoke Sync-Agent
+
+Delegate to the **sync-agent** with configured mode:
+
+```
+Invoke: agents/sync-agent.md
+
+Pass configuration:
+- mode: [interactive|auto-apply|dry-run|manual|debug]
+- force_rescan: boolean (from --force-rescan flag)
+
+Agent will execute all 5 phases autonomously:
+1. Git synchronization
+2. Secret discovery
+3. State comparison
+4. Update proposal
+5. Application (if approved)
+```
+
+### Step 3: Display Agent Progress
+
+The sync-agent reports progress during execution. Pass through to user:
+
+**Standard output**:
+```
+🔄 Syncing Lovable project state...
+
+Phase 1/5: Git synchronization
+  ✅ Fetched from origin/main
+  ✅ No merge conflicts
+  ✅ Local is up-to-date
+
+Phase 2/5: Secret discovery
+  ✅ Scanned codebase (found 4 secrets)
+  ✅ Parsed .env.example (found 3 templates)
+  ⏳ Extracting from Lovable Cloud...
+  ✅ Lovable Cloud (found 3 configured secrets)
+  ✅ Merged and deduplicated
+
+Phase 3/5: State comparison
+  ✅ Parsed CLAUDE.md
+  ✅ Identified changes: +1 new, -1 removed, ~1 status change
+
+Phase 4/5: Update proposal
+  ✅ Generated updated CLAUDE.md
+  ✅ Preserved user customizations
+  📋 Showing diff...
+
+[Agent displays diff]
+
+Apply these changes to CLAUDE.md? [y/n]
+```
+
+**Debug output** (if `--debug` flag):
+```
+🐛 DEBUG: Sync Agent Started
+Mode: interactive
+Flags: debug=true
+
+--- Phase 1: Git Synchronization ---
+[0.00s] Running: git fetch origin main
+[1.23s] ✅ Fetch completed
+[1.24s] Running: git status --porcelain
+[1.31s] ✅ No uncommitted changes
+[Detailed logging continues...]
+```
+
+### Step 4: Handle Agent Results
+
+Agent completes and returns results:
+
+**Success result**:
+```javascript
+{
+  status: "success",
+  phase_completed: 5,
+  changes_applied: true,
+  summary: {
+    new_secrets: 1,
+    removed_secrets: 1,
+    updated_secrets: 1,
+    unchanged: 3
+  },
+  message: "CLAUDE.md updated successfully"
+}
+```
+
+**Partial success** (dry-run):
+```javascript
+{
+  status: "preview_only",
+  phase_completed: 4,  // Stopped before application
+  changes_applied: false,
+  diff: "...",
+  message: "Preview complete. Run without --dry-run to apply."
+}
+```
+
+**Error result**:
+```javascript
+{
+  status: "error",
+  phase_completed: 1,  // Failed at git sync
+  error_type: "git_conflict",
+  message: "Merge conflicts detected...",
+  recovery_instructions: "..."
+}
+```
+
+### Step 5: Display Final Summary
+
+Show agent's final output to user:
+
+**Success**:
+```
+✅ CLAUDE.md updated successfully
+
+Changes applied:
+- Added 1 secret (STRIPE_SECRET_KEY)
+- Removed 1 secret (OLD_UNUSED_KEY)
+- Updated 1 secret (RESEND_API_KEY status)
+- Preserved all user notes and conventions
+
+Next steps:
+1. Review changes: cat CLAUDE.md
+2. Commit changes: git add CLAUDE.md && git commit -m "Sync: Update secrets"
+3. Push to remote: git push origin main
+
+💡 Run /lovable:sync weekly to stay in sync with team changes.
+```
+
+**Auto-apply mode**:
+```
+✅ Auto-sync completed
+
+Updated CLAUDE.md with latest project state.
+
+Changes: +1 secret, -1 secret, ~1 status change
+
+Committed and ready to push.
+```
+
+**Dry-run mode**:
+```
+🔍 DRY RUN - No changes will be made
+
+[Full diff displayed by agent]
+
+To apply these changes:
+- Run: /lovable:sync --apply (auto-apply)
+- Run: /lovable:sync (interactive, asks confirmation)
+```
+
+**Error**:
+```
+❌ Sync failed: [error from agent]
+
+[Agent's recovery instructions]
+
+For help: /help or consult SKILL.md
+```
+
+---
+
+## Agent Delegation Benefits
+
+**Why this command delegates to sync-agent**:
+- ✅ **Independent context**: Sync operations don't pollute main coding conversation
+- ✅ **Parallel execution**: User can continue working while sync runs
+- ✅ **Complex logic isolated**: Agent handles all 5 phases autonomously
+- ✅ **Reusability**: Same agent can be invoked by other commands/hooks
+- ✅ **Better error handling**: Centralized in agent
+- ✅ **Cleaner command**: Command focuses on UX, agent on logic
+
+**Command responsibilities**:
+- Parse flags
+- Configure agent mode
+- Display agent progress (pass-through)
+- Show final summary
+
+**Agent responsibilities** (see `agents/sync-agent.md`):
+- All 5 synchronization phases
+- Git operations and conflict handling
+- Secret discovery (codebase + browser + .env)
+- State comparison and diff generation
+- CLAUDE.md updates with preservation
+- Progress reporting
+- Error recovery
+
+---
 
 ## Common Use Cases
 
-| Scenario | Trigger | Result |
+| Scenario | Command | Result |
 |----------|---------|--------|
-| Team added secrets in Lovable Cloud | `run /lovable:sync` | Secrets added to local CLAUDE.md |
-| New Edge Functions created | `run /lovable:sync` | Functions list updated |
-| Want to verify everything is in sync | `run /lovable:sync --dry-run` | See what changed, no updates |
-| Just synced code, want fresh state | `run /lovable:sync --force-rescan` | Ignore cache, rescan everything |
+| Check what changed | `/lovable:sync --dry-run` | Preview changes without applying |
+| Team added secrets | `/lovable:sync` | Interactive sync, shows diff, asks confirmation |
+| Quick auto-update | `/lovable:sync --apply` | Apply changes automatically |
+| Browser automation unavailable | `/lovable:sync --manual` | Manual mode with user input |
+| Debugging sync issues | `/lovable:sync --debug` | Verbose logging throughout |
+| Fresh scan after changes | `/lovable:sync --force-rescan` | Ignore cache, rescan everything |
 
-## Sync Frequency
-
-**Recommended sync intervals:**
-- **After team deploys:** Run sync to see what changed
-- **Weekly** (if team collaboration): Keep CLAUDE.md fresh
-- **Before important deployments:** Verify secrets are configured
-- **After Lovable UI changes:** Ensure nothing was missed
-
-**Automatic sync consideration:**
-- Could add to yolo mode to sync before each deployment
-- Currently manual to avoid unnecessary automation runs
-
-## Error Handling
-
-| Error | Solution |
-|-------|----------|
-| No Lovable Project URL | Add to CLAUDE.md, then retry |
-| Not logged in | Log in to Lovable, then retry |
-| Timeout (>45 seconds) | Use `--manual` mode or retry later |
-| Page not found (404) | Verify project URL, check access |
-| Network issues | Retry or use `--manual` mode |
-
-**All error handling reuses patterns from `secrets-extraction.md`**
+---
 
 ## Integration with Other Commands
 
@@ -314,45 +274,68 @@ I'll compare with CLAUDE.md and update as needed.
 - `/lovable:apply-migration` - Sync to check DB state
 - `/lovable:yolo` - Sync can run before yolo deployments
 
-**Called by:**
-- Yolo mode (before deployment, if enabled)
-- Auto-sync on project open (future feature)
+**Can be invoked by:**
+- Yolo mode (before deployment, if sync_before_deploy enabled)
+- Auto-sync hook (future feature)
+- Other agents (as part of larger workflows)
 
-## Sync Caching
+---
 
-**Results cached for:**
-- 5 minutes (quick re-runs within session)
-- Cleared when CLAUDE.md is edited
-- Cleared when user specifies `--force-rescan`
+## Error Handling
 
-**Why caching:**
-- Reduces browser automation runs
-- Improves performance for repeated checks
-- User can force fresh check with flag
+All error scenarios are handled by the sync-agent. The command simply displays agent errors and recovery instructions.
+
+**Common agent errors**:
+- Git conflicts → Agent aborts, guides user to resolve manually
+- Browser automation fails → Agent falls back to manual mode
+- CLAUDE.md parse errors → Agent warns, attempts best-effort update
+- Network errors → Agent retries with backoff, then fails gracefully
+- File write errors → Agent aborts, preserves changes for user to copy
+
+**See `agents/sync-agent.md`** for complete error handling documentation.
+
+---
 
 ## Success Criteria
 
 Sync is successful if:
-1. ✅ Connects to Lovable (automation or manual)
-2. ✅ Extracts current state (secrets, functions, URL)
-3. ✅ Compares with CLAUDE.md
-4. ✅ Reports changes clearly
-5. ✅ Updates CLAUDE.md with new information
-6. ✅ Preserves user's custom notes and conventions
-7. ✅ Never loses data (adds/updates, not deletes user content)
-8. ✅ Provides next steps and recommendations
+1. ✅ Agent completes all applicable phases
+2. ✅ CLAUDE.md updated (or preview shown in dry-run)
+3. ✅ User informed of results
+4. ✅ Next steps provided
 
-## Debug Mode
-
-Use `--debug` flag to see detailed automation logs:
-- Navigation steps and timings
-- Selector matching attempts
-- Secret extraction details
-- Comparison results
-- CLAUDE.md changes
-
-See `secrets-extraction.md` debug output format for examples.
+Agent guarantees:
+- Never loses user data
+- Preserves all customizations
+- Clear error messages
+- Actionable recovery instructions
 
 ---
 
-This command keeps your project configuration fresh and ensures CLAUDE.md always reflects the current state of your Lovable Cloud project.
+## Manual Sync Mode
+
+If `--manual` flag or browser automation unavailable, agent prompts:
+
+```
+📋 MANUAL SYNC MODE
+
+Browser automation unavailable. Please provide current information from Lovable:
+
+1. Current secrets in Cloud → Secrets:
+   (Enter comma-separated secret names, or paste the list)
+   > RESEND_API_KEY, STRIPE_SECRET_KEY, OPENAI_API_KEY
+
+2. Which secrets are configured (✅) vs not configured (⚠️)?
+   (Mark as: RESEND_API_KEY✅, STRIPE_SECRET_KEY⚠️, ...)
+   > RESEND_API_KEY✅, STRIPE_SECRET_KEY⚠️, OPENAI_API_KEY✅
+
+3. Any other changes or notes:
+   (Describe what changed since last sync)
+   > Added Stripe for payments
+
+Agent will compare with CLAUDE.md and update as needed.
+```
+
+---
+
+*This command provides a clean interface to the powerful sync-agent, keeping the main conversation focused while delegating complex synchronization work to an autonomous agent.*

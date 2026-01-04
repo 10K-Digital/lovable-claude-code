@@ -151,27 +151,6 @@ project/
 - Feature branches don't deploy until merged
 - Lovable syncs within 1-2 minutes of push
 
-## Auto-Push to GitHub (Hook-Based)
-
-Auto-push is now **automatically handled by a Claude Code hook** when `Auto-Push to GitHub: on` is configured in CLAUDE.md.
-
-**How it works:**
-- A `Stop` hook automatically runs after you finish responding to the user
-- The hook checks if auto-push is enabled in CLAUDE.md
-- If enabled and there are changes on the main branch, it commits and pushes automatically
-- You don't need to manually run git commands - the hook handles it
-
-**Important:** Auto-push is independent of yolo mode:
-- ✅ Auto-push can be ON while yolo mode is OFF
-- ✅ Auto-push can be ON while yolo mode is ON
-- ❌ Auto-push CANNOT be OFF if yolo mode is ON (yolo requires auto-push)
-
-**What you should do:**
-- Focus on completing the user's task successfully
-- Make quality code changes
-- The hook will automatically commit and push after you finish
-- If yolo mode is also enabled, auto-deploy will trigger after the push
-
 ## Yolo Mode - Automated Deployments (Beta)
 
 When `yolo_mode: on` in CLAUDE.md, deployments are automated via browser automation:

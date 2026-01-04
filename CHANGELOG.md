@@ -2,6 +2,172 @@
 
 All notable changes to the Lovable Claude Code plugin will be documented in this file.
 
+## [1.6.0] - 2026-01-04
+
+### Added
+
+#### First Agent Implementation - Sync-Agent
+- **New autonomous sync-agent** (`agents/sync-agent.md`) for multi-phase project synchronization
+- Completes the plugin's architectural maturity with all four workflow types:
+  - ✅ Commands (user interaction)
+  - ✅ Skills (knowledge)
+  - ✅ Hooks (event automation)
+  - ✅ Agents (complex autonomous tasks) **← NEW**
+
+#### Sync-Agent Capabilities
+- **5-phase autonomous workflow**:
+  1. Git synchronization (fetch, merge, conflict handling)
+  2. Secret discovery (codebase scan, .env.example, Lovable Cloud)
+  3. State comparison (identify new/removed/changed secrets)
+  4. Update proposal (generate diff, preserve user customizations)
+  5. Application (write CLAUDE.md if approved)
+- **5 operational modes**: interactive, auto-apply, dry-run, manual, debug
+- **Independent context window** - doesn't pollute main coding conversation
+- **Parallel execution capable** - user can continue working while sync runs
+- **Comprehensive error handling** with graceful degradation
+- **Preserves all user customizations** in CLAUDE.md
+
+#### Architectural Benefits
+- ✅ **Independent context**: Sync operations run in separate 200K token budget
+- ✅ **Not related to current code task**: Meta-operations isolated from development work
+- ✅ **High complexity justified**: 5 phases, multiple tools, complex decision trees
+- ✅ **Parallel workflows enabled**: Background sync while user continues coding
+- ✅ **Reference implementation**: Establishes pattern for future agents
+
+### Changed
+
+#### /lovable:sync Command Refactored
+- Refactored from procedural to agent-delegation architecture
+- Command now focuses on UX (flag parsing, progress display)
+- Complex sync logic moved to sync-agent
+- **Breaking change**: None - all flags and behavior preserved
+- **User experience**: Identical output, more reliable execution
+
+**Before (procedural)**:
+- 359 lines of inline logic
+- Git, secret detection, comparison, updates all in command
+- Difficult to test and maintain
+- Clutters main conversation with sync details
+
+**After (agent-delegation)**:
+- 342 lines focused on UX and orchestration
+- Invokes sync-agent for autonomous execution
+- Clean separation of concerns
+- Agent runs in separate context
+
+### Fixed
+
+#### Removed Duplication in Lovable Skill
+- **Deleted** auto-push explanation section from `skills/lovable/SKILL.md` (lines 154-174)
+- Auto-push is now 100% handled by `hooks/auto-push.sh` (added in v1.5.0)
+- Skills no longer explain hook implementation details
+- Cleaner separation between skills (knowledge) and hooks (automation)
+
+**Why this matters**:
+- Skills should provide knowledge Claude needs, not explain implementation
+- Hook runs automatically regardless - no need to document internal behavior
+- Reduces confusion about what Claude should do vs. what happens automatically
+
+### Architectural Improvements
+
+#### Complete Plugin Architecture
+The plugin now demonstrates best practices for all workflow types:
+
+**Commands** (user-invoked, interactive):
+- Example: `/lovable:init`, `/lovable:sync`, `/lovable:deploy-edge`
+- Use when: User needs to trigger, requires confirmations
+
+**Skills** (contextual knowledge):
+- Example: `lovable` (architecture), `yolo` (automation orchestration)
+- Use when: Claude needs to understand concepts or patterns
+
+**Hooks** (event-driven automation):
+- Example: `auto-sync` (Start), `auto-push` (Stop)
+- Use when: Deterministic, no user interaction, background tasks
+
+**Agents** (complex autonomous tasks):
+- Example: `sync-agent` (multi-phase synchronization)
+- Use when: Independent context needed, parallel-capable, high complexity
+
+#### Decision Guide Updated
+- Added clear criteria for when to use each pattern
+- Emphasized context isolation and parallel execution for agents
+- Documented in plan and architectural review
+
+### Documentation
+
+- New file: `agents/sync-agent.md` - Comprehensive agent documentation
+- Updated: `commands/sync-lovable.md` - Simplified with agent delegation
+- Updated: `skills/lovable/SKILL.md` - Removed auto-push duplication
+- Updated: Architectural review plan saved at `.claude/plans/`
+
+### Benefits of This Release
+
+**For Users**:
+- ✅ No breaking changes - all existing workflows work identically
+- ✅ More reliable /lovable:sync execution (agent-based)
+- ✅ Cleaner skill documentation (no implementation details)
+- ✅ Foundation for future autonomous features
+
+**For Developers**:
+- ✅ Clear architectural patterns for all workflow types
+- ✅ Reference implementation for future agents
+- ✅ Better separation of concerns
+- ✅ Easier to test and maintain
+
+**For the Plugin Ecosystem**:
+- ✅ Demonstrates agent pattern in production
+- ✅ Shows value of context isolation
+- ✅ Enables parallel execution capabilities
+- ✅ Completes architectural maturity
+
+### Technical Details
+
+**Agent Invocation Pattern**:
+```
+Command parses flags
+   ↓
+Configure agent mode
+   ↓
+Invoke sync-agent
+   ↓
+Agent executes autonomously (5 phases)
+   ↓
+Display progress (pass-through)
+   ↓
+Show results
+```
+
+**Files Modified**:
+- `.claude-plugin/plugin.json` - Version bump to 1.6.0
+- `skills/lovable/SKILL.md` - Removed lines 154-174 (auto-push section)
+- `commands/sync-lovable.md` - Refactored to delegate to agent
+- `agents/sync-agent.md` - New file (19KB comprehensive documentation)
+- `CHANGELOG.md` - This entry
+
+**Lines Changed**:
+- Removed: 22 lines (duplication in skill)
+- Added: 835 lines (new agent)
+- Modified: 342 lines (refactored command)
+- **Net**: +1,155 lines of structured, maintainable code
+
+### Migration Guide
+
+**No migration needed** - This is a non-breaking release. All existing workflows continue to work identically.
+
+**Optional**: Review the new sync-agent documentation to understand the improved architecture:
+- `agents/sync-agent.md` - Agent capabilities and modes
+- `commands/sync-lovable.md` - Updated command documentation
+
+### What's Next
+
+Future agents enabled by this foundation:
+1. **deployment-agent** - Autonomous deployment verification and rollback
+2. **migration-validator** - SQL analysis and impact assessment
+3. **codebase-analyzer** - Project health checks and optimization suggestions
+
+---
+
 ## [1.5.0] - 2025-01-04
 
 ### Added
