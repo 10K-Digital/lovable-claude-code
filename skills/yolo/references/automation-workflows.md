@@ -32,6 +32,8 @@ When `auto_deploy: off` or using manual commands:
 
 **Goal:** Open the Lovable project page in the browser.
 
+> **IMPORTANT:** After navigation, you MUST wait for GitHub sync before submitting any deployment prompts. See Step 1.5.
+
 1. **Read configuration:**
    ```
    - Read CLAUDE.md
@@ -78,6 +80,113 @@ Wait: Page load event
 Result: ✅ Loaded (1.2s)
 Current URL: https://lovable.dev/projects/abc123
 Login status: Authenticated
+```
+
+---
+
+### Step 1.5: Wait for GitHub Sync (CRITICAL)
+
+**Goal:** Verify Lovable has synced the latest code from GitHub before deployment.
+
+> **Why this matters:** Lovable syncs from GitHub asynchronously (typically 1-2 minutes). If we submit a deployment prompt before sync completes, Lovable will deploy stale code.
+
+1. **Initial wait after navigation:**
+   ```
+   - Wait 30 seconds after page load
+   - This gives Lovable time to update sync status
+   ```
+
+2. **Check for sync indicators:**
+   ```
+   Look for these signs that sync is complete:
+   - Recent commit message visible in project activity
+   - Commit hash matches what was just pushed
+   - "Synced" or "Up to date" status indicator
+   - No "Syncing..." or spinning/pending indicators
+
+   Selector patterns to check:
+   1. [data-testid="sync-status"]
+   2. [class*="sync"][class*="complete"]
+   3. Text containing commit message from push
+   4. GitHub icon with checkmark
+   ```
+
+3. **Verification loop:**
+   ```
+   attempts = 0
+   max_attempts = 4  # 30s each = 2 min max
+
+   while not synced and attempts < max_attempts:
+     check sync indicators
+     if synced:
+       break
+     wait 30 seconds
+     attempts++
+
+   if synced:
+     → Proceed to Step 2 (Locate Chat Interface)
+   else:
+     → Show sync timeout warning
+     → Offer options to user
+   ```
+
+4. **If sync verified:**
+   ```
+   ✅ Step 2/8: Sync verified - Lovable has latest code
+      Commit: abc1234 "Add email notifications"
+   ```
+
+5. **If sync times out:**
+   ```
+   ⚠️ Sync verification timeout
+
+   Lovable hasn't synced the latest changes after 2 minutes.
+
+   **Options:**
+   1. Wait and retry (I'll check again in 30s)
+   2. Proceed anyway (may deploy stale code)
+   3. Cancel and verify manually
+
+   What would you like to do?
+   ```
+
+6. **Handle sync timeout user choice:**
+   ```
+   If user chooses "retry":
+     → Wait 30s, check again
+     → Up to 2 more attempts
+
+   If user chooses "proceed":
+     → Continue with warning
+     → Note in summary: "⚠️ Deployed without sync verification"
+
+   If user chooses "cancel":
+     → Show manual fallback prompt
+     → Exit automation
+   ```
+
+**Debug output (if `yolo_debug: on`):**
+```
+🐛 DEBUG: Step 1.5 - GitHub Sync Verification
+
+Commit just pushed:
+  Hash: abc1234
+  Message: "Add email notifications"
+  Timestamp: 2025-01-03 10:30:00
+
+Sync check #1 (0s):
+  Looking for commit in Lovable UI...
+  Sync indicator: Not found
+  Commit visible: No
+  Status: ⏳ Syncing...
+
+Sync check #2 (30s):
+  Looking for commit in Lovable UI...
+  Sync indicator: Found - "Synced"
+  Commit visible: Yes - "Add email notifications"
+  Status: ✅ Synced
+
+Result: ✅ Sync verified (32s)
 ```
 
 ---
@@ -824,16 +933,18 @@ For ANY automation failure:
 ```
 🤖 Yolo mode: Deploying send-email edge function
 
-⏳ Step 1/7: Navigating to Lovable project...
-✅ Step 2/7: Located chat interface
-✅ Step 3/7: Submitted prompt
-⏳ Step 4/7: Waiting for Lovable response...
-✅ Step 5/7: Deployment confirmed
-⏳ Step 6/7: Running verification tests...
+⏳ Step 1/8: Navigating to Lovable project...
+⏳ Step 2/8: Waiting for GitHub sync...
+✅ Step 3/8: Sync verified - Lovable has latest code
+✅ Step 4/8: Located chat interface
+✅ Step 5/8: Submitted prompt
+⏳ Step 6/8: Waiting for Lovable response...
+✅ Step 7/8: Deployment confirmed
+⏳ Step 8/8: Running verification tests...
   ⏳ Basic verification...
   ⏳ Console error checking...
   ⏳ Functional testing...
-✅ Step 7/7: All tests passed
+✅ Step 8/8: All tests passed
 
 ✅ Complete! Edge function deployed and verified.
 ```
@@ -851,8 +962,9 @@ For ANY automation failure:
 
 **Automation Steps:**
 1. ✅ Navigated to Lovable project
-2. ✅ Submitted deployment prompt
-3. ✅ Deployment confirmed by Lovable
+2. ✅ GitHub sync verified
+3. ✅ Submitted deployment prompt
+4. ✅ Deployment confirmed by Lovable
 
 **Verification Tests:**
 1. ✅ Basic verification: Deployment logs show no errors
@@ -879,8 +991,9 @@ For ANY automation failure:
 
 **Automation Steps:**
 1. ✅ Navigated to Lovable project
-2. ✅ Submitted deployment prompt
-3. ✅ Deployment confirmed by Lovable
+2. ✅ GitHub sync verified
+3. ✅ Submitted deployment prompt
+4. ✅ Deployment confirmed by Lovable
 
 **Verification Tests:**
 1. ✅ Basic verification: Deployment logs show no errors
@@ -907,8 +1020,9 @@ For ANY automation failure:
 
 **Automation Steps:**
 1. ✅ Navigated to Lovable project
-2. ✅ Submitted deployment prompt
-3. ✅ Deployment confirmed by Lovable
+2. ✅ GitHub sync verified
+3. ✅ Submitted deployment prompt
+4. ✅ Deployment confirmed by Lovable
 
 **Verification Tests:**
 1. ✅ Basic verification: Passed
@@ -1058,6 +1172,7 @@ Lovable will sync the code, but deployment requires a prompt.
 |-------|------------------|
 | Extension not installed | Prompt + link to install Chrome extension |
 | Not logged in | Prompt + "Please log in to Lovable" |
+| GitHub sync timeout | Prompt + "Lovable hasn't synced yet, verify manually or wait" |
 | UI element not found | Prompt + "Lovable UI may have changed" + report link |
 | Timeout | Prompt + "Check Lovable manually, may still be processing" |
 | Deployment error | Prompt + error details + suggested fixes |

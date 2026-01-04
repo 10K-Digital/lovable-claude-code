@@ -117,17 +117,89 @@ When conditions are met, proceed with deployment:
 Show progress message:
   "Auto-deploy: Backend changes detected, starting deployment..."
 
+IMPORTANT: Wait for Lovable to sync from GitHub first!
+  1. Navigate to Lovable project
+  2. Wait for GitHub sync to complete (up to 2 minutes)
+  3. Verify the pushed commit is visible in Lovable
+  4. Only then proceed with deployment prompts
+
 For edge functions:
   1. Validate secrets (scan for Deno.env.get patterns)
   2. If missing secrets → Warn and ask user to add them first
-  3. If secrets OK → Execute browser automation
-  4. Run verification tests if yolo_testing: on
+  3. Wait for sync verification
+  4. If secrets OK and sync complete → Execute browser automation
+  5. Run verification tests if yolo_testing: on
 
 For migrations:
   1. Check for destructive operations
   2. If destructive → Warn and get user confirmation
-  3. If safe or confirmed → Execute browser automation
-  4. Verify schema after application
+  3. Wait for sync verification
+  4. If safe or confirmed and sync complete → Execute browser automation
+  5. Verify schema after application
+```
+
+### Step 3.5: Wait for GitHub Sync (CRITICAL)
+
+**Why this matters:** Lovable syncs from GitHub asynchronously. If we submit a deployment prompt before Lovable has the latest code, the deployment will use stale code and fail or deploy the wrong version.
+
+**Sync timing:** Lovable typically syncs within 1-2 minutes of a push to main.
+
+**Verification process:**
+```
+1. Navigate to Lovable project page
+2. Look for sync indicators:
+   - Recent commit message visible in project
+   - Commit hash matches what was just pushed
+   - "Synced" or "Up to date" status indicator
+   - No "Syncing..." or pending status
+
+3. Verification methods (try in order):
+   a. Check for commit message in recent activity
+   b. Look for sync status indicator in UI
+   c. Check if file changes are reflected
+
+4. Wait strategy:
+   - Initial wait: 30 seconds after navigation
+   - Check for sync status
+   - If not synced: Wait additional 30 seconds, check again
+   - Max wait: 2 minutes total
+   - If still not synced after 2 min: Warn user and offer options
+
+5. If sync verified:
+   → Proceed to deployment prompt
+
+6. If sync not verified after timeout:
+   → Show warning
+   → Ask user to verify manually
+   → Provide manual fallback prompt
+```
+
+**Sync verification output:**
+```
+⏳ Step 2/8: Waiting for Lovable to sync from GitHub...
+  Commit pushed: abc1234 "Add email notifications"
+  Checking Lovable sync status...
+  ⏳ Syncing... (30s)
+  ⏳ Syncing... (60s)
+  ✅ Sync complete! Lovable has the latest code.
+```
+
+**If sync times out:**
+```
+⚠️ Sync verification timeout
+
+Lovable hasn't synced the latest changes after 2 minutes.
+This can happen if:
+- Lovable is experiencing delays
+- GitHub webhook didn't trigger
+- Network issues
+
+**Options:**
+1. Wait and retry: I'll check again in 30 seconds
+2. Proceed anyway: Deploy with current code (may use stale version)
+3. Manual check: Verify sync in Lovable, then run /deploy-edge
+
+What would you like to do?
 ```
 
 ### Step 4: Show Results
@@ -175,7 +247,10 @@ Backend changes detected in your push to main:
 
 Starting automated deployment...
 
-⏳ Step 1/7: Navigating to Lovable project...
+⏳ Step 1/8: Navigating to Lovable project...
+⏳ Step 2/8: Waiting for GitHub sync to complete...
+✅ Step 3/8: Sync verified - Lovable has latest code
+⏳ Step 4/8: Locating chat interface...
 ```
 
 ### When Auto-Deploy is Disabled
