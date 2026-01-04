@@ -151,16 +151,29 @@ For migrations:
 1. Navigate to Lovable project page IMMEDIATELY (no initial wait)
 
 2. Check LEFT SIDEBAR chat history for sync confirmation:
+   VISUAL REFERENCE:
+   See: skills/yolo/references/lovable-commented-screenshot.png
+   - Left sidebar is the scrollable chat history area
+   - GitHub commits appear as conversation items
+   - Example: "Fix Mercado Pago installment config..." with GitHub icon
+
    WHAT TO LOOK FOR:
-   - GitHub icon (octocat logo) next to a message
-   - Message starts with the commit message just used
-   - Message may be partially cut off if long
-   - Located in chat history on LEFT side of page
+   - Conversation item in left sidebar
+   - GitHub icon (looks like small octocat/mark before the text)
+   - Message text matches your commit message (first ~50 chars)
+   - May show "Active Edit" or "Code" buttons below
+   - Appears as a clickable conversation item
 
    WHERE TO LOOK:
-   - Left sidebar conversation history
-   - Scroll to BOTTOM of chat history if needed
-   - Most recent messages appear at bottom
+   - Left sidebar (scrollable conversation history)
+   - Scroll to the BOTTOM - newest items at bottom
+   - Should appear within seconds after push
+
+   EXACT VISUAL PATTERN:
+   [GitHub Icon] "Your commit message here..."
+                 Active Edit        Code
+
+   Example from screenshot: "Fix Mercado Pago installment config..."
 
 3. Fast checking loop:
    - Check immediately first (no wait)

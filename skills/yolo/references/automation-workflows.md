@@ -102,20 +102,29 @@ Login status: Authenticated
    ```
    Look for sync confirmation in the left sidebar chat history:
 
+   VISUAL REFERENCE:
+   See: skills/yolo/references/lovable-commented-screenshot.png
+   - Left sidebar is the scrollable chat history area
+   - GitHub commits appear as conversation items
+   - Example: "Fix Mercado Pago installment config..." with GitHub icon
+
    WHAT TO LOOK FOR:
-   - GitHub icon (octocat logo) next to a message
-   - Message starts with the commit message just used
-   - Message may be partially cut off if long
-   - Located in the chat history on the LEFT side of the page
+   - Conversation item in left sidebar
+   - GitHub icon (looks like small octocat/mark before the text)
+   - Message text matches your commit message (first ~50 chars)
+   - May show "Active Edit" or "Code" buttons below
+   - Appears as a clickable conversation item
 
    WHERE TO LOOK:
-   - Left sidebar conversation history
-   - Scroll to the BOTTOM of chat history if needed
-   - Most recent messages appear at bottom
+   - Left sidebar (scrollable conversation history)
+   - Scroll to the BOTTOM - newest items at bottom
+   - Should appear within seconds after push
 
-   EXAMPLE:
-   GitHub icon: 🐙 "Add email notifications feat..."
-   (The commit message you just pushed, possibly truncated)
+   EXACT VISUAL PATTERN:
+   [GitHub Icon] "Your commit message here..."
+                 Active Edit        Code
+
+   Example from screenshot: "Fix Mercado Pago installment config..."
    ```
 
 3. **Verification loop (faster checking):**
@@ -217,22 +226,32 @@ Result: ✅ Sync verified (8s) - Much faster than old 30s+ approach!
 
 1. **Find the CORRECT chat input element:**
    ```
+   VISUAL REFERENCE:
+   See: skills/yolo/references/lovable-commented-screenshot.png
+   - Bottom left area labeled "This is Lovable's Chat Input area"
+   - Shows "Ask Lovable..." placeholder
+   - Has "Visual edits" option nearby
+   - Has "Login" button to the right
+
    CORRECT INPUT LOCATION:
-   - **Lower left corner** of the page
-   - Placeholder text: "Ask Lovable..." or similar
-   - This is the MAIN chat interface for talking to Lovable
+   - **Bottom left corner** of the page (below chat history)
+   - Placeholder text: "Ask Lovable..."
+   - Part of the main chat interface
+   - Located directly below the scrollable chat history
+   - Adjacent to "Visual edits" text/button
 
    WRONG INPUT (DO NOT USE):
    - Top of page input (refers to internal preview page)
-   - Any input that's part of the preview/iframe
+   - Any input that's part of the preview/iframe area (right side)
    - Search inputs or filter inputs
+   - Inputs in the center "Page Preview" area
 
    Primary selectors to try (in order):
-   1. textarea[placeholder*="Ask Lovable"]
-   2. textarea[placeholder*="Ask"][placeholder*="Lovable"]
-   3. Lower left corner: div[class*="chat"] textarea
-   4. textarea[data-testid="chat-input"] (in lower left area)
-   5. Position-based: textarea in element with bottom-left positioning
+   1. textarea[placeholder="Ask Lovable..."]
+   2. textarea[placeholder*="Ask Lovable"]
+   3. Bottom left area: Look for textarea near "Visual edits" text
+   4. textarea with "Login" button nearby
+   5. Position-based: textarea in bottom-left, below chat history
 
    Wait for: Element exists and is visible
    Timeout: 5 seconds
