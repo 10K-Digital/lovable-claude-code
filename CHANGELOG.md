@@ -2,6 +2,51 @@
 
 All notable changes to the Lovable Claude Code plugin will be documented in this file.
 
+## [1.5.0] - 2025-01-04
+
+### Added
+
+#### Auto-Sync Hook (Start Event)
+- **New auto-sync hook** keeps local repo synchronized with GitHub
+- Automatically pulls latest changes from GitHub when Claude starts working
+- Only runs on main branch with no uncommitted changes
+- Uses `git pull --rebase` to maintain clean history
+- Gracefully handles conflicts - aborts and notifies user if conflicts detected
+- Prevents diverged branch issues by checking if local/remote have diverged
+- Added `hooks/auto-sync.sh` script that runs on Start event
+
+#### Benefits of Auto-Sync
+- ✅ **Always work on latest code** - Pulls changes before Claude starts
+- ✅ **Prevents conflicts** - Detects diverged branches and warns user
+- ✅ **Safe operation** - Only pulls when no uncommitted changes exist
+- ✅ **Seamless workflow** - Happens automatically in the background
+- ✅ **Network resilient** - Exits silently if GitHub is unreachable
+
+### Changed
+
+#### Hook-Based Auto-Push Implementation
+- **Auto-push now uses Claude Code hooks** instead of skill-based logic
+- More reliable and deterministic - hooks always run when Claude finishes responding
+- Auto-push logic moved from `skills/lovable/SKILL.md` to `hooks/auto-push.sh`
+- New `hooks/hooks.json` configuration file defines Stop event hook
+- Hook automatically commits and pushes changes when `Auto-Push to GitHub: on` in CLAUDE.md
+
+#### Benefits of This Change
+- ✅ **More reliable** - Hooks guarantee execution vs. Claude sometimes forgetting
+- ✅ **Deterministic** - Always runs on Stop event, no conditional logic needed
+- ✅ **Cleaner architecture** - Separation of concerns between skills and automation
+- ✅ **Better user experience** - Users don't need to remind Claude to push
+- ✅ **Maintains all safety checks** - Same conditions apply (main branch, changes exist, enabled in CLAUDE.md)
+
+#### Technical Details
+- Added `hooks/` directory with `hooks.json`, `auto-sync.sh`, and `auto-push.sh`
+- Updated `.claude-plugin/plugin.json` to reference hooks
+- Simplified `skills/lovable/SKILL.md` - removed manual auto-push instructions
+- Auto-push hook checks for `Auto-Push to GitHub: on` in user's CLAUDE.md
+- Auto-sync hook runs on Start event, auto-push runs on Stop event
+- Both hooks exit silently if conditions aren't met
+- Smart commit messages based on changed files (edge functions, migrations, frontend)
+
 ## [1.4.1] - 2025-01-04
 
 ### Fixed

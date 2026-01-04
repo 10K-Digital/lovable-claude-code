@@ -88,19 +88,29 @@ Claude: 🤖 Detects backend changes automatically
 Done. Zero manual work. No git commands. No deploy commands!
 ```
 
-**NEW in v1.4.0:** With auto-push enabled, Claude automatically commits and pushes your changes!
+**IMPROVED in v1.5.0:** Hook-based auto-push for 100% reliable automatic commits and pushes!
 **NEW in v1.3.0:** With auto-deploy enabled, Claude automatically deploys to Lovable after git push!
 
 ---
 
 ## **Key Features That Save You Hours**
 
-### ⚡ **Auto-Push to GitHub** (NEW in v1.4.0!)
-After completing any task, Claude automatically commits and pushes your changes to GitHub. No manual git commands needed!
+### ⚡ **Auto-Sync & Auto-Push** (Hook-Based in v1.5.0!)
+Using Claude Code hooks for seamless GitHub integration - always in sync, always up-to-date, 100% reliable!
 
+**Auto-Sync (Start Hook):**
 ```
-Make changes → Task complete → Auto-commit → Auto-push → Changes in GitHub!
+Claude starts → Hook pulls latest → You work on current code → No conflicts!
 ```
+Automatically pulls latest changes from GitHub when Claude starts working. Only runs on main branch with no uncommitted changes.
+
+**Auto-Push (Stop Hook):**
+```
+Make changes → Task complete → Hook triggers → Auto-commit → Auto-push → Changes in GitHub!
+```
+Automatically commits and pushes when Claude finishes any task. No manual git commands!
+
+**Why hooks?** Hooks guarantee execution every time, making sync operations more reliable than skill-based approaches. Auto-sync keeps you current, auto-push keeps GitHub current!
 
 ### 🚀 **Auto-Deploy to Lovable** (v1.3.0)
 Push backend changes to main, and Claude automatically deploys to Lovable. No commands, no copy-paste, no context switching.
@@ -249,11 +259,12 @@ Total: 5 minutes
 /lovable:yolo off                   # Disable automation
 ```
 
-**Auto-Push (NEW in v1.4.0):**
-With auto-push enabled, after completing each task Claude automatically:
+**Auto-Push (Hook-Based in v1.5.0):**
+Using a Claude Code hook, after completing each task the plugin automatically:
 - Checks for file changes
 - Commits with descriptive message
 - Pushes to main branch on GitHub
+- **More reliable:** Hooks guarantee execution vs. Claude remembering to check
 
 **Auto-Deploy (v1.3.0):**
 With auto-deploy enabled, after git push Claude automatically:

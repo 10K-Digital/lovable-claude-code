@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a **Claude Code plugin** for integrating with Lovable.dev projects. It's distributed as a plugin, not a typical software project with build steps or test suites.
 
 - **Repository**: https://github.com/10K-Digital/lovable-claude-code
-- **Current Version**: 1.4.1
+- **Current Version**: 1.5.0
 - **Type**: Claude Code plugin (no compilation, no dependencies, no build process)
 - **Distribution**: Via Claude Code plugin marketplace (10K-Digital/lovable-claude-code)
 
@@ -29,6 +29,11 @@ commands/                # Slash commands (/lovable:* commands)
 ├── sync-lovable.md      # Sync with Lovable Cloud
 ├── yolo.md             # Toggle automation mode
 └── [others].md
+
+hooks/                   # Claude Code hooks (NEW in v1.5.0)
+├── hooks.json           # Hook configuration (Start and Stop events)
+├── auto-sync.sh         # Auto-sync implementation script (Start event)
+└── auto-push.sh         # Auto-push implementation script (Stop event)
 
 skills/                  # Contextual skills (auto-activate based on conditions)
 ├── lovable/
@@ -86,14 +91,26 @@ This plugin's core feature is **generating CLAUDE.md files** for user projects (
 
 **Critical distinction**: This repo contains the plugin code. User projects get a generated CLAUDE.md.
 
-#### 3. Auto-Push and Yolo Mode (Auto-Deploy) Features
+#### 3. Auto-Sync, Auto-Push, and Yolo Mode Features
 
-**Auto-Push** (v1.4.0, refined in v1.4.1):
-- After completing a task successfully, automatically commit and push to GitHub
+**Auto-Sync** (NEW in v1.5.0):
+- **Hook-based implementation** - uses Claude Code's Start event hook for 100% reliability
+- Automatically pulls latest changes from GitHub when Claude starts working
+- **Always-on feature** - runs automatically on every Start event (no configuration needed)
+- Implemented in `hooks/auto-sync.sh` (triggered by `hooks/hooks.json`)
+- Safety checks: only on main branch, no uncommitted changes, local is behind remote
+- Uses `git pull --rebase` to maintain clean history
+- Gracefully handles conflicts - aborts and notifies user if conflicts detected
+- **Prevents diverged branch issues** - checks if local/remote have diverged before pulling
+
+**Auto-Push** (v1.4.0, refined in v1.4.1, hook-based in v1.5.0):
+- **Hook-based implementation** - uses Claude Code's Stop event hook for 100% reliability
+- Automatically commits and pushes to GitHub after Claude finishes responding
 - **Independent feature** - can be enabled without yolo mode
 - Configured via `Auto-Push to GitHub: on/off` in user's CLAUDE.md (separate section)
-- Implemented in `skills/lovable/SKILL.md` (lines 154-227)
-- Safety checks: task success, file changes, on main branch
+- Implemented in `hooks/auto-push.sh` (triggered by `hooks/hooks.json`)
+- Safety checks: auto-push enabled, file changes exist, on main branch
+- **More reliable** than skill-based approach (v1.4.x) - hooks guarantee execution
 
 **Yolo Mode / Auto-Deploy** (v1.3.0):
 - After git push, automatically deploy backend changes to Lovable via browser automation
@@ -107,11 +124,13 @@ This plugin's core feature is **generating CLAUDE.md files** for user projects (
 - Yolo mode REQUIRES auto-push to be ON (automatic deployment)
 - Disabling yolo mode does NOT disable auto-push
 
-**Workflow when both enabled**:
+**Complete workflow with all features enabled**:
 ```
-User asks for changes
+User starts conversation
+  → Auto-sync: pull latest from GitHub (Start hook)
+  → User asks for changes
   → Claude makes changes
-  → Auto-push: commit + push to GitHub
+  → Auto-push: commit + push to GitHub (Stop hook)
   → Yolo mode: detect backend changes → navigate to Lovable → submit deployment
   → Verification tests run
   → Done (zero manual commands)
@@ -119,9 +138,11 @@ User asks for changes
 
 **Workflow with only auto-push** (yolo mode off):
 ```
-User asks for changes
+User starts conversation
+  → Auto-sync: pull latest from GitHub (Start hook)
+  → User asks for changes
   → Claude makes changes
-  → Auto-push: commit + push to GitHub
+  → Auto-push: commit + push to GitHub (Stop hook)
   → GitHub syncs frontend to Lovable instantly
   → User manually deploys backend via /deploy-edge or copy-paste prompts
 ```
@@ -339,7 +360,7 @@ If you need to understand how this plugin works:
 1. **README.md** - User-facing documentation and feature explanations
 2. **CHANGELOG.md** - Version history and changes
 3. **commands/init-lovable.md** - Most complex command, orchestrates project setup
-4. **skills/lovable/SKILL.md** - Core integration patterns and auto-push logic
+4. **skills/lovable/SKILL.md** - Core integration patterns (auto-push moved to hooks in v1.5.0)
 5. **skills/yolo/SKILL.md** - Browser automation orchestration
 6. **skills/lovable/references/CLAUDE-template.md** - Template for generated project files
 7. **skills/yolo/references/automation-workflows.md** - Browser automation implementation
@@ -348,6 +369,16 @@ If you need to understand how this plugin works:
 
 
 Each version builds on previous automation layers to reduce manual work.
+
+### v1.5.0 Architecture Change
+
+In v1.5.0, auto-push was reimplemented using Claude Code hooks for improved reliability:
+- **Hook-based implementation** - Auto-push logic moved from skills to hooks
+- Uses Stop event hook (`hooks/hooks.json` + `hooks/auto-push.sh`)
+- **100% reliable** - Hooks execute deterministically vs. Claude remembering to check
+- Cleaner separation of concerns - Skills provide knowledge, hooks provide automation
+- All safety checks preserved (enabled in CLAUDE.md, changes exist, main branch)
+- User experience unchanged - Same configuration, same behavior, more reliable execution
 
 ### v1.4.1 Architecture Change
 
