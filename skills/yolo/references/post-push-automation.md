@@ -144,31 +144,34 @@ For migrations:
 
 **Sync timing:** Lovable typically syncs within 1-2 minutes of a push to main.
 
+> **NEW APPROACH:** Navigate immediately, check chat history for sync confirmation.
+
 **Verification process:**
 ```
-1. Navigate to Lovable project page
-2. Look for sync indicators:
-   - Recent commit message visible in project
-   - Commit hash matches what was just pushed
-   - "Synced" or "Up to date" status indicator
-   - No "Syncing..." or pending status
+1. Navigate to Lovable project page IMMEDIATELY (no initial wait)
 
-3. Verification methods (try in order):
-   a. Check for commit message in recent activity
-   b. Look for sync status indicator in UI
-   c. Check if file changes are reflected
+2. Check LEFT SIDEBAR chat history for sync confirmation:
+   WHAT TO LOOK FOR:
+   - GitHub icon (octocat logo) next to a message
+   - Message starts with the commit message just used
+   - Message may be partially cut off if long
+   - Located in chat history on LEFT side of page
 
-4. Wait strategy:
-   - Initial wait: 30 seconds after navigation
-   - Check for sync status
-   - If not synced: Wait additional 30 seconds, check again
-   - Max wait: 2 minutes total
-   - If still not synced after 2 min: Warn user and offer options
+   WHERE TO LOOK:
+   - Left sidebar conversation history
+   - Scroll to BOTTOM of chat history if needed
+   - Most recent messages appear at bottom
 
-5. If sync verified:
+3. Fast checking loop:
+   - Check immediately first (no wait)
+   - If not found: Wait 4 seconds, check again
+   - Keep checking every 4 seconds
+   - Max attempts: 20 (total 80 seconds max)
+
+4. If sync found:
    → Proceed to deployment prompt
 
-6. If sync not verified after timeout:
+5. If not found after 80 seconds:
    → Show warning
    → Ask user to verify manually
    → Provide manual fallback prompt
@@ -176,26 +179,30 @@ For migrations:
 
 **Sync verification output:**
 ```
-⏳ Step 2/8: Waiting for Lovable to sync from GitHub...
+⏳ Step 2/8: Checking for GitHub sync...
   Commit pushed: abc1234 "Add email notifications"
-  Checking Lovable sync status...
-  ⏳ Syncing... (30s)
-  ⏳ Syncing... (60s)
-  ✅ Sync complete! Lovable has the latest code.
+  Checking left sidebar chat history...
+  ⏳ Checking... (0s - immediate)
+  ⏳ Checking... (4s)
+  ⏳ Checking... (8s)
+  ✅ Sync confirmed! Found commit in chat history.
+
+  Much faster than old 30s+ approach!
 ```
 
 **If sync times out:**
 ```
 ⚠️ Sync verification timeout
 
-Lovable hasn't synced the latest changes after 2 minutes.
+Couldn't confirm GitHub sync after 80 seconds of checking.
 This can happen if:
-- Lovable is experiencing delays
+- Sync is taking longer than usual
 - GitHub webhook didn't trigger
 - Network issues
+- Chat history not showing the commit yet
 
 **Options:**
-1. Wait and retry: I'll check again in 30 seconds
+1. Wait and retry: I'll check again (4 more attempts)
 2. Proceed anyway: Deploy with current code (may use stale version)
 3. Manual check: Verify sync in Lovable, then run /deploy-edge
 

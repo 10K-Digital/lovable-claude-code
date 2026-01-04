@@ -90,42 +90,55 @@ Login status: Authenticated
 
 > **Why this matters:** Lovable syncs from GitHub asynchronously (typically 1-2 minutes). If we submit a deployment prompt before sync completes, Lovable will deploy stale code.
 
-1. **Initial wait after navigation:**
+> **NEW APPROACH:** Navigate immediately, then check chat history for sync confirmation.
+
+1. **Navigate to project immediately (no initial wait):**
    ```
-   - Wait 30 seconds after page load
-   - This gives Lovable time to update sync status
+   - Go directly to Lovable project page after git push
+   - Don't wait 30 seconds first - sync detection starts immediately
    ```
 
-2. **Check for sync indicators:**
+2. **Check chat history on left side:**
    ```
-   Look for these signs that sync is complete:
-   - Recent commit message visible in project activity
-   - Commit hash matches what was just pushed
-   - "Synced" or "Up to date" status indicator
-   - No "Syncing..." or spinning/pending indicators
+   Look for sync confirmation in the left sidebar chat history:
 
-   Selector patterns to check:
-   1. [data-testid="sync-status"]
-   2. [class*="sync"][class*="complete"]
-   3. Text containing commit message from push
-   4. GitHub icon with checkmark
+   WHAT TO LOOK FOR:
+   - GitHub icon (octocat logo) next to a message
+   - Message starts with the commit message just used
+   - Message may be partially cut off if long
+   - Located in the chat history on the LEFT side of the page
+
+   WHERE TO LOOK:
+   - Left sidebar conversation history
+   - Scroll to the BOTTOM of chat history if needed
+   - Most recent messages appear at bottom
+
+   EXAMPLE:
+   GitHub icon: 🐙 "Add email notifications feat..."
+   (The commit message you just pushed, possibly truncated)
    ```
 
-3. **Verification loop:**
+3. **Verification loop (faster checking):**
    ```
    attempts = 0
-   max_attempts = 4  # 30s each = 2 min max
+   max_attempts = 20  # 4s each = 80 seconds max
 
+   # Check immediately first
+   check chat history for commit message
+   if found:
+     → Sync confirmed, proceed to Step 2
+
+   # If not found, wait and retry
    while not synced and attempts < max_attempts:
-     check sync indicators
-     if synced:
+     wait 4 seconds
+     scroll to bottom of chat history (if needed)
+     check for GitHub icon + commit message
+     if found:
+       → Sync confirmed, proceed to Step 2
        break
-     wait 30 seconds
      attempts++
 
-   if synced:
-     → Proceed to Step 2 (Locate Chat Interface)
-   else:
+   if not synced after max_attempts:
      → Show sync timeout warning
      → Offer options to user
    ```
@@ -174,49 +187,75 @@ Commit just pushed:
   Message: "Add email notifications"
   Timestamp: 2025-01-03 10:30:00
 
-Sync check #1 (0s):
-  Looking for commit in Lovable UI...
-  Sync indicator: Not found
-  Commit visible: No
-  Status: ⏳ Syncing...
+Sync check #1 (0s - immediate):
+  Location: Left sidebar chat history
+  Scrolling to: Bottom of chat history
+  Looking for: GitHub icon + "Add email notifications"
+  Result: Not found yet
 
-Sync check #2 (30s):
-  Looking for commit in Lovable UI...
-  Sync indicator: Found - "Synced"
-  Commit visible: Yes - "Add email notifications"
+Sync check #2 (4s):
+  Location: Left sidebar chat history
+  Looking for: GitHub icon + "Add email notifications"
+  Result: Not found yet
+
+Sync check #3 (8s):
+  Location: Left sidebar chat history
+  Looking for: GitHub icon + "Add email notifications"
+  Found: ✅ GitHub icon with message "Add email notifications feat..."
   Status: ✅ Synced
 
-Result: ✅ Sync verified (32s)
+Result: ✅ Sync verified (8s) - Much faster than old 30s+ approach!
 ```
 
 ---
 
 ### Step 2: Locate Chat Interface
 
-**Goal:** Find and prepare the chat input element for typing.
+**Goal:** Find and prepare the CORRECT chat input element for typing.
 
-1. **Find chat input element:**
+> **CRITICAL:** Use the LOWER LEFT corner chat input, NOT the top input for preview!
+
+1. **Find the CORRECT chat input element:**
    ```
+   CORRECT INPUT LOCATION:
+   - **Lower left corner** of the page
+   - Placeholder text: "Ask Lovable..." or similar
+   - This is the MAIN chat interface for talking to Lovable
+
+   WRONG INPUT (DO NOT USE):
+   - Top of page input (refers to internal preview page)
+   - Any input that's part of the preview/iframe
+   - Search inputs or filter inputs
+
    Primary selectors to try (in order):
-   1. textarea[data-testid="chat-input"]
-   2. textarea[placeholder*="Message"]
-   3. input[type="text"][data-testid*="chat"]
-   4. textarea[class*="chat"]
-   5. div[contenteditable="true"][role="textbox"]
+   1. textarea[placeholder*="Ask Lovable"]
+   2. textarea[placeholder*="Ask"][placeholder*="Lovable"]
+   3. Lower left corner: div[class*="chat"] textarea
+   4. textarea[data-testid="chat-input"] (in lower left area)
+   5. Position-based: textarea in element with bottom-left positioning
 
    Wait for: Element exists and is visible
    Timeout: 5 seconds
    ```
 
-2. **Verify element is interactable:**
+2. **Verify element is the CORRECT one:**
    ```
+   - Check element is in LOWER LEFT corner (not top)
+   - Check placeholder contains "Ask Lovable" or similar
    - Check element is not disabled
    - Check element is visible (not hidden)
    - Check element is in viewport
    - Scroll into view if needed
    ```
 
-3. **If element not found:**
+3. **If multiple inputs found:**
+   ```
+   - ALWAYS prefer the one in lower left corner
+   - Check placeholder text to confirm it's the chat input
+   - If unsure, use position: lower left wins
+   ```
+
+4. **If element not found:**
    ```
    Error: "Could not locate chat interface"
 
@@ -224,6 +263,7 @@ Result: ✅ Sync verified (32s)
    - Lovable UI has changed
    - Page still loading
    - Browser viewport too small
+   - Wrong tab/window focused
 
    Fallback: Provide manual prompt
    ```
@@ -233,16 +273,22 @@ Result: ✅ Sync verified (32s)
 🐛 DEBUG: Step 2 - Locate Chat Interface
 
 Trying selectors:
-  1. textarea[data-testid="chat-input"] → Not found
-  2. textarea[placeholder*="Message"] → ✅ Found
+  1. textarea[placeholder*="Ask Lovable"] → ✅ Found
 
-Element properties:
+Element verification:
+  Placeholder text: "Ask Lovable..."
+  Position: Lower left corner (x=50, y=850)
   Visible: true
   Enabled: true
   In viewport: true
-  Position: x=100, y=500
 
-Result: ✅ Chat input located (0.3s)
+Correctness check:
+  ✅ In lower left corner (NOT top of page)
+  ✅ Placeholder contains "Ask Lovable"
+  ✅ NOT the preview/internal page input
+  ✅ This is the CORRECT chat input
+
+Result: ✅ Correct chat input located (0.3s)
 ```
 
 ---
