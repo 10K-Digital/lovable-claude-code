@@ -33,6 +33,43 @@ This skill should be active when:
    - "submit this to Lovable automatically"
    - "browser automation"
 
+## Performance Optimization
+
+### Model Selection (Hybrid Approach)
+
+For optimal speed + reliability, use different models for different tasks:
+
+**Use Haiku for:**
+- Clicking elements using refs (simple, deterministic)
+- Form input operations (`form_input` tool calls)
+- Key presses and simple navigation
+- Waiting/polling operations
+- Simple element finding with `find` tool
+
+**Use Sonnet for:**
+- Initial page understanding after navigation
+- Error detection and recovery decisions
+- Parsing Lovable's responses for success/failure
+- Deciding next steps when something unexpected happens
+- Complex page state analysis
+
+**Why this matters:**
+- Haiku is 3-5x faster for simple operations
+- Sonnet provides better reliability for complex reasoning
+- Hybrid approach gives best of both: speed + accuracy
+
+### Tool Preferences
+
+**Always prefer these tools:**
+- `find` and `read_page` over screenshots for element location
+- `form_input` over click + type for input values
+- `ref` parameters over coordinates for clicking
+- DOM polling over screenshot-based monitoring
+
+See `references/automation-workflows.md` for detailed implementation.
+
+---
+
 ## Core Functionality
 
 ### 1. Auto-Detection

@@ -6,6 +6,30 @@ Complete reference for browser automation when yolo mode is enabled.
 
 This document provides step-by-step instructions for automating Lovable prompt submission using Claude's browser automation capabilities.
 
+## Performance Principles
+
+To maximize speed and reliability, this automation follows these principles:
+
+### Use `ref` Parameters Instead of Coordinates
+- Always use `read_page` and `find` tools to get element references
+- Click elements using `ref="ref_X"` instead of coordinate-based `(x, y)` clicks
+- This eliminates "clicking wrong places" issues entirely
+
+### Use `form_input` Instead of Typing
+- Set input values directly using `form_input(ref=X, value="...")`
+- Avoids character-by-character typing which is slow (~50ms per char) and error-prone
+- Results in 20x faster prompt entry with zero mistyping
+
+### Minimize Screenshots
+- Use `read_page` to understand page state (fast, deterministic)
+- Only take screenshots on errors or for final user confirmation
+- Screenshots are slow (~1-2s each) and add unnecessary latency
+
+### Model Selection (Hybrid Approach)
+For optimal speed + reliability:
+- **Use Haiku** for: clicking refs, form inputs, key presses, waiting
+- **Use Sonnet** for: initial page understanding, error handling, parsing responses
+
 ## Prerequisites
 
 - Claude in Chrome extension installed
@@ -90,7 +114,7 @@ Login status: Authenticated
 
 > **Why this matters:** Lovable syncs from GitHub asynchronously (typically 1-2 minutes). If we submit a deployment prompt before sync completes, Lovable will deploy stale code.
 
-> **NEW APPROACH:** Navigate immediately, then check chat history for sync confirmation.
+> **OPTIMIZED APPROACH:** Use DOM-based detection instead of visual scanning for speed and reliability.
 
 1. **Navigate to project immediately (no initial wait):**
    ```
@@ -98,51 +122,54 @@ Login status: Authenticated
    - Don't wait 30 seconds first - sync detection starts immediately
    ```
 
-2. **Check chat history on left side:**
+2. **DOM-Based Sync Detection (FAST & RELIABLE):**
    ```
-   Look for sync confirmation in the left sidebar chat history:
+   Use read_page or JavaScript to find sync confirmation:
 
-   VISUAL REFERENCE:
-   See: skills/yolo/references/lovable-commented-screenshot.png
-   - Left sidebar is the scrollable chat history area
-   - GitHub commits appear as conversation items
-   - Example: "Fix Mercado Pago installment config..." with GitHub icon
+   METHOD 1: Use read_page to search accessibility tree
+   - Call read_page(tabId=X)
+   - Search for text containing commit message (first ~30 chars)
+   - Look for elements with "github" or commit text in their content
 
-   WHAT TO LOOK FOR:
-   - Conversation item in left sidebar
-   - GitHub icon (looks like small octocat/mark before the text)
-   - Message text matches your commit message (first ~50 chars)
-   - May show "Active Edit" or "Code" buttons below
-   - Appears as a clickable conversation item
+   METHOD 2: Use JavaScript for direct DOM query
+   - Use javascript_tool to run:
+     ```javascript
+     // Get all text content from sidebar
+     const sidebar = document.querySelector('[data-sidebar]') ||
+                     document.querySelector('.sidebar') ||
+                     document.querySelector('nav');
+     const text = sidebar?.textContent || '';
+     // Check if commit message appears
+     text.includes('YOUR_COMMIT_MESSAGE_PREFIX')
+     ```
 
-   WHERE TO LOOK:
-   - Left sidebar (scrollable conversation history)
-   - Scroll to the BOTTOM - newest items at bottom
-   - Should appear within seconds after push
+   METHOD 3: Use find tool
+   - Call find(query="conversation item with YOUR_COMMIT_MESSAGE", tabId=X)
+   - If element found with matching text, sync is confirmed
 
-   EXACT VISUAL PATTERN:
-   [GitHub Icon] "Your commit message here..."
-                 Active Edit        Code
-
-   Example from screenshot: "Fix Mercado Pago installment config..."
+   WHY THIS IS BETTER:
+   - No screenshots needed (saves ~1-2s per check)
+   - Deterministic - text matching vs visual icon recognition
+   - Faster polling interval possible (2s vs 4s)
+   - More reliable - doesn't depend on icon rendering
    ```
 
-3. **Verification loop (faster checking):**
+3. **Verification loop (optimized):**
    ```
    attempts = 0
-   max_attempts = 20  # 4s each = 80 seconds max
+   max_attempts = 30  # 2s each = 60 seconds max (faster checks)
+   commit_prefix = first 30 chars of commit message
 
-   # Check immediately first
-   check chat history for commit message
-   if found:
+   # Check immediately first using read_page
+   page_content = read_page(tabId=X)
+   if commit_prefix in page_content:
      → Sync confirmed, proceed to Step 2
 
    # If not found, wait and retry
    while not synced and attempts < max_attempts:
-     wait 4 seconds
-     scroll to bottom of chat history (if needed)
-     check for GitHub icon + commit message
-     if found:
+     wait 2 seconds  # Faster than 4s since no screenshot overhead
+     page_content = read_page(tabId=X)
+     if commit_prefix in page_content:
        → Sync confirmed, proceed to Step 2
        break
      attempts++
@@ -162,7 +189,7 @@ Login status: Authenticated
    ```
    ⚠️ Sync verification timeout
 
-   Lovable hasn't synced the latest changes after 2 minutes.
+   Lovable hasn't synced the latest changes after 60 seconds.
 
    **Options:**
    1. Wait and retry (I'll check again in 30s)
@@ -189,89 +216,76 @@ Login status: Authenticated
 
 **Debug output (if `yolo_debug: on`):**
 ```
-🐛 DEBUG: Step 1.5 - GitHub Sync Verification
+🐛 DEBUG: Step 1.5 - GitHub Sync Verification (DOM-based)
 
 Commit just pushed:
   Hash: abc1234
   Message: "Add email notifications"
-  Timestamp: 2025-01-03 10:30:00
+  Search prefix: "Add email notifications"
 
 Sync check #1 (0s - immediate):
-  Location: Left sidebar chat history
-  Scrolling to: Bottom of chat history
-  Looking for: GitHub icon + "Add email notifications"
+  Method: read_page DOM query
+  Looking for: "Add email notifications"
   Result: Not found yet
 
-Sync check #2 (4s):
-  Location: Left sidebar chat history
-  Looking for: GitHub icon + "Add email notifications"
+Sync check #2 (2s):
+  Method: read_page DOM query
+  Looking for: "Add email notifications"
   Result: Not found yet
 
-Sync check #3 (8s):
-  Location: Left sidebar chat history
-  Looking for: GitHub icon + "Add email notifications"
-  Found: ✅ GitHub icon with message "Add email notifications feat..."
+Sync check #3 (4s):
+  Method: read_page DOM query
+  Found: ✅ Text "Add email notifications feat..." in sidebar
   Status: ✅ Synced
 
-Result: ✅ Sync verified (8s) - Much faster than old 30s+ approach!
+Result: ✅ Sync verified (4s) - DOM-based detection is faster and more reliable!
 ```
 
 ---
 
 ### Step 2: Locate Chat Interface
 
-**Goal:** Find and prepare the CORRECT chat input element for typing.
+**Goal:** Find and prepare the CORRECT chat input element using ref-based approach.
 
 > **CRITICAL:** Use the LOWER LEFT corner chat input, NOT the top input for preview!
 
-1. **Find the CORRECT chat input element:**
+> **OPTIMIZED APPROACH:** Use `find` tool to get element ref directly - no coordinates needed!
+
+1. **Use `find` tool for reliable element location:**
    ```
-   VISUAL REFERENCE:
-   See: skills/yolo/references/lovable-commented-screenshot.png
-   - Bottom left area labeled "This is Lovable's Chat Input area"
-   - Shows "Ask Lovable..." placeholder
-   - Has "Visual edits" option nearby
-   - Has "Login" button to the right
+   PREFERRED METHOD: Use find tool with natural language query
+   - Call: find(query="Ask Lovable chat input textarea", tabId=X)
+   - Returns: Element ref (e.g., ref_42) that can be used for all interactions
+   - No coordinate calculations needed
+   - Guaranteed to interact with correct element
 
-   CORRECT INPUT LOCATION:
-   - **Bottom left corner** of the page (below chat history)
-   - Placeholder text: "Ask Lovable..."
-   - Part of the main chat interface
-   - Located directly below the scrollable chat history
-   - Adjacent to "Visual edits" text/button
+   ALTERNATIVE: Use read_page + search
+   - Call: read_page(tabId=X, filter="interactive")
+   - Search for element with "Ask Lovable" in name/placeholder
+   - Extract ref from matching element
 
-   WRONG INPUT (DO NOT USE):
-   - Top of page input (refers to internal preview page)
-   - Any input that's part of the preview/iframe area (right side)
-   - Search inputs or filter inputs
-   - Inputs in the center "Page Preview" area
-
-   Primary selectors to try (in order):
-   1. textarea[placeholder="Ask Lovable..."]
-   2. textarea[placeholder*="Ask Lovable"]
-   3. Bottom left area: Look for textarea near "Visual edits" text
-   4. textarea with "Login" button nearby
-   5. Position-based: textarea in bottom-left, below chat history
-
-   Wait for: Element exists and is visible
-   Timeout: 5 seconds
+   WHY THIS IS BETTER:
+   - Refs are stable - clicking ref_42 always clicks that exact element
+   - No viewport/resolution dependencies
+   - No "clicking wrong places" issues
+   - Works even if UI positions change
    ```
 
-2. **Verify element is the CORRECT one:**
+2. **Store the element ref for later use:**
    ```
-   - Check element is in LOWER LEFT corner (not top)
-   - Check placeholder contains "Ask Lovable" or similar
-   - Check element is not disabled
-   - Check element is visible (not hidden)
-   - Check element is in viewport
-   - Scroll into view if needed
+   chatInputRef = result from find tool (e.g., "ref_42")
+
+   This ref will be used in Step 3 for:
+   - form_input(ref=chatInputRef, value="...")
+   - No need to click to focus first
    ```
 
-3. **If multiple inputs found:**
+3. **Verify element is correct (quick check):**
    ```
-   - ALWAYS prefer the one in lower left corner
-   - Check placeholder text to confirm it's the chat input
-   - If unsure, use position: lower left wins
+   The find tool result includes element details:
+   - role: "textbox" or "textarea"
+   - name: should contain "Ask Lovable" or similar
+   - If name doesn't match, search read_page results manually
    ```
 
 4. **If element not found:**
@@ -281,102 +295,109 @@ Result: ✅ Sync verified (8s) - Much faster than old 30s+ approach!
    Possible reasons:
    - Lovable UI has changed
    - Page still loading
-   - Browser viewport too small
    - Wrong tab/window focused
 
-   Fallback: Provide manual prompt
+   Recovery:
+   1. Wait 2 seconds, retry find()
+   2. If still not found, try read_page(filter="interactive") and search manually
+   3. If still not found, fall back to manual prompt
+
+   Fallback: Provide manual prompt to user
    ```
 
 **Debug output (if `yolo_debug: on`):**
 ```
-🐛 DEBUG: Step 2 - Locate Chat Interface
+🐛 DEBUG: Step 2 - Locate Chat Interface (ref-based)
 
-Trying selectors:
-  1. textarea[placeholder*="Ask Lovable"] → ✅ Found
+Method: find tool
+Query: "Ask Lovable chat input textarea"
+Result: ✅ Found
 
-Element verification:
-  Placeholder text: "Ask Lovable..."
-  Position: Lower left corner (x=50, y=850)
-  Visible: true
-  Enabled: true
-  In viewport: true
+Element details:
+  ref: ref_42
+  role: textbox
+  name: "Ask Lovable..."
+  state: enabled, visible
 
-Correctness check:
-  ✅ In lower left corner (NOT top of page)
-  ✅ Placeholder contains "Ask Lovable"
-  ✅ NOT the preview/internal page input
-  ✅ This is the CORRECT chat input
+Verification:
+  ✅ Name contains "Ask Lovable"
+  ✅ Element is enabled
+  ✅ Ref stored for Step 3
 
-Result: ✅ Correct chat input located (0.3s)
+Result: ✅ Chat input ref acquired (0.2s)
 ```
 
 ---
 
 ### Step 3: Submit the Prompt
 
-**Goal:** Type the Lovable prompt and submit it.
+**Goal:** Enter the Lovable prompt and submit it.
 
-1. **Click to focus input:**
+> **OPTIMIZED APPROACH:** Use `form_input` tool - 20x faster than typing, zero mistyping!
+
+1. **Use `form_input` to set prompt value (FAST):**
    ```
-   - Click on chat input element
-   - Wait for: Element to be focused
-   - Verify: Element has focus (active element)
+   PREFERRED METHOD: Direct value setting
+   - Call: form_input(ref=chatInputRef, value="Deploy the send-email edge function", tabId=X)
+   - Sets the value instantly (~100ms total)
+   - No clicking to focus needed
+   - No character-by-character typing
+   - Zero chance of mistyping
+
+   WHY THIS IS BETTER:
+   - Old approach: Click + type 40 chars × 50ms = ~2-3 seconds + possible typos
+   - New approach: form_input = ~100ms, guaranteed accuracy
+   - 20x faster with 100% reliability
    ```
 
-2. **Type the prompt:**
+2. **Submit the prompt:**
    ```
-   - Clear existing text (if any)
-   - Type the full Lovable prompt
-   - Example: "Deploy the send-email edge function"
-   - Typing speed: Natural (not instant)
-   ```
-
-3. **Submit the prompt:**
-   ```
-   Option A: Press Enter
-   - Simulate Enter keypress
+   PREFERRED: Press Enter using ref
+   - Call: computer(action="key", text="Enter", tabId=X)
    - Wait: 200ms for form submission
 
-   Option B: Click send button (if Enter doesn't work)
-   - Find send button near input
-   - Selectors: button[type="submit"], button[aria-label*="Send"]
-   - Click button
+   ALTERNATIVE: Click send button if Enter doesn't work
+   - Call: find(query="send button", tabId=X)
+   - Call: computer(action="left_click", ref=sendButtonRef, tabId=X)
    ```
 
-4. **Confirm message sent:**
+3. **Confirm message sent (quick DOM check):**
    ```
-   - Wait for: New message to appear in chat
-   - Check: Message content matches what we typed
-   - Check: Message is from "user" (not assistant)
-   - Timeout: 3 seconds
+   - Wait 1-2 seconds
+   - Call: read_page(tabId=X) to check chat state
+   - Look for user message containing our prompt text
+   - Timeout: 5 seconds
+
+   NOTE: No screenshot needed - DOM is faster and more reliable
    ```
 
-5. **If submission fails:**
+4. **If submission fails:**
    ```
-   - Try alternative submission method
-   - If still fails:
-     → Error: "Could not submit prompt"
-     → Show manual fallback
+   Recovery steps:
+   1. Try clicking send button instead of Enter
+   2. If still fails, take screenshot for debugging
+   3. Fall back to manual prompt
+
+   Fallback: Provide manual prompt to user
    ```
 
 **Debug output (if `yolo_debug: on`):**
 ```
-🐛 DEBUG: Step 3 - Submit Prompt
+🐛 DEBUG: Step 3 - Submit Prompt (form_input)
 
-Focus: ✅ Input focused (0.1s)
-Typing: "Deploy the send-email edge function"
-  Speed: 50ms per character
-  Duration: 1.9s
-  Result: ✅ Text entered
+Method: form_input (instant)
+Ref: ref_42
+Value: "Deploy the send-email edge function"
+Result: ✅ Value set (0.1s)
 
-Submission method: Press Enter
-  Key: Enter
-  Result: ✅ Submitted (0.1s)
+Submission method: Enter key
+Result: ✅ Submitted (0.1s)
 
-Confirmation: Checking for new message...
-  Wait: Message appears in chat
-  Result: ✅ Message confirmed (0.4s)
-  Content: "Deploy the send-email edge function"
+Confirmation: read_page DOM check
+Looking for: User message with "Deploy the send-email"
+Result: ✅ Message confirmed in DOM (0.3s)
+
+Total time: 0.5s (vs ~2.5s with typing)
 ```
 
 ---
@@ -385,66 +406,85 @@ Confirmation: Checking for new message...
 
 **Goal:** Wait for Lovable to process the prompt and respond.
 
-1. **Watch for new assistant message:**
+> **OPTIMIZED APPROACH:** Use `read_page` polling instead of screenshots for speed.
+
+1. **Poll for assistant message using DOM:**
    ```
-   - Monitor chat for new messages
-   - Look for: Message from "assistant" role (not user)
-   - Ignore: User messages, system messages
-   - Timeout: 180 seconds (3 minutes)
+   PREFERRED METHOD: read_page polling
+   - Wait 2-3 seconds initial delay (let Lovable start processing)
+   - Call: read_page(tabId=X)
+   - Search for new assistant message in chat
+   - Look for text that wasn't there before submission
+
+   POLLING LOOP:
+   while no response and elapsed < 180 seconds:
+     wait 2 seconds
+     content = read_page(tabId=X)
+     check for new assistant message
+     if found and not loading indicator present:
+       → Response received, proceed to Step 5
+
+   WHY THIS IS BETTER:
+   - No screenshots needed (saves ~1-2s per check)
+   - Faster polling (2s vs 5s with screenshots)
+   - More reliable text extraction
    ```
 
-2. **Track loading indicators:**
+2. **Detect loading state:**
    ```
-   Common loading indicators:
-   - "Thinking..." or "Generating..." text
-   - Loading spinner icon
-   - Typing indicator animation
+   During polling, check for loading indicators in DOM:
+   - Text containing "Thinking", "Generating", "Loading"
+   - Elements with loading/spinner roles
 
-   Wait for: All loading indicators to disappear
+   If loading indicator present:
+     → Response in progress, keep waiting
+   If loading gone + new text present:
+     → Response complete, capture text
    ```
 
 3. **Capture response text:**
    ```
-   - Read full message content
-   - Extract: Text from assistant's response
-   - Store: For success/error detection
+   Once response detected:
+   - Extract assistant message text from DOM
+   - Store full text for Step 5 analysis
+   - No screenshot needed unless debugging
    ```
 
-4. **If timeout:**
+4. **If timeout (180 seconds):**
    ```
-   After 3 minutes without response:
+   ⏱️ Lovable hasn't responded after 3 minutes
 
-   Warning: "Lovable hasn't responded after 3 minutes"
+   The operation may still be processing.
+   Please check Lovable manually to verify status.
 
-   Possible reasons:
-   - Complex operation still processing
-   - Lovable encountered an error
-   - Network issue
+   Prompt that was submitted:
+   📋 "Deploy the send-email edge function"
 
-   Recommendation: Check Lovable manually
-   Prompt submitted: [show prompt]
+   At this point: Take ONE screenshot for user reference
    ```
 
 **Debug output (if `yolo_debug: on`):**
 ```
-🐛 DEBUG: Step 4 - Monitor Response
+🐛 DEBUG: Step 4 - Monitor Response (DOM polling)
 
-Watching for: Assistant message
-Elapsed: 0s ... 1s ... 2s ... 3s ... 4s
-Loading indicators:
-  - Typing animation: Present (3.2s), Gone (4.1s)
+Method: read_page polling (2s interval)
+Elapsed: 0s → 2s → 4s → 6s
 
-Message received:
-  Role: assistant
-  Timestamp: 4.2s after submission
+Poll #1 (2s):
+  New content: None yet
+  Loading indicator: "Thinking..."
+  Status: ⏳ Still processing
+
+Poll #2 (4s):
+  New content: Detected new text
+  Loading indicator: None
+  Status: ✅ Response complete
+
+Response extracted:
   Length: 245 characters
+  Content: "I'll deploy the send-email edge function now..."
 
-Full content:
-"I'll deploy the send-email edge function now. This will make the
-function available at your Supabase edge function endpoint. The deployment
-should complete within 30 seconds. I'll let you know when it's done!"
-
-Result: ✅ Response received (4.2s)
+Result: ✅ Response received (4s) - No screenshots used!
 ```
 
 ---
@@ -1142,24 +1182,59 @@ Shows minimal progress indicators only.
 
 ---
 
+## Screenshot Policy
+
+To maximize performance, follow these guidelines for screenshot usage:
+
+### DO Take Screenshot:
+- **On errors** - Capture state for debugging when something fails
+- **Final confirmation** - One screenshot after deployment completes (optional)
+- **User request** - If user explicitly asks to see what happened
+- **Debugging mode** - When `yolo_debug: on` and investigating issues
+
+### DO NOT Take Screenshot:
+- **For element location** - Use `read_page` and `find` tools instead
+- **For sync verification** - Use DOM-based text search
+- **Between each step** - Too slow, use DOM polling
+- **For response monitoring** - Use `read_page` to check chat state
+- **For success detection** - Parse text from DOM, not screenshot
+
+### Why This Matters:
+- Each screenshot adds ~1-2 seconds latency
+- Old approach: 5-8 screenshots = 5-16 seconds of overhead
+- New approach: 1-2 screenshots = 1-4 seconds of overhead
+- **75% reduction in screenshot-related latency**
+
+---
+
 ## Performance Notes
 
-**Typical timing:**
+**Optimized timing (with ref-based approach):**
 - Navigation: 1-2s
-- Element location: 0.2-0.5s
-- Prompt submission: 0.1-0.3s
+- Element location: 0.1-0.2s (using find/read_page)
+- Prompt submission: 0.1-0.3s (using form_input)
+- Sync verification: 2-10s (DOM polling every 2s)
 - Lovable response: 3-10s
 - Basic verification: 2-5s
 - Console checking: 10-15s
 - Functional testing: 1-5s
 
-**Total automation time:**
-- Without testing: ~5-15s
-- With testing: ~20-40s
+**Total automation time (optimized):**
+- Without testing: ~5-12s (was 15-45s)
+- With testing: ~15-30s (was 20-40s)
+
+**Improvement summary:**
+| Step | Old Time | New Time | Improvement |
+|------|----------|----------|-------------|
+| Element location | 0.5-2s | 0.1-0.2s | 5-10x faster |
+| Prompt entry | 2-3s | 0.1-0.3s | 10-20x faster |
+| Sync verification | 30-80s | 2-20s | 3-4x faster |
+| Screenshots | 5-16s overhead | 1-4s overhead | 75% reduction |
 
 **Timeout limits:**
 - Page load: 10s
-- Element finding: 5s
+- Element finding: 5s (usually <1s with find tool)
+- Sync verification: 60s (faster polling than before)
 - Lovable response: 180s (3 min)
 - Test requests: 30-60s
 

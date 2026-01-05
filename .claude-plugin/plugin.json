@@ -1,7 +1,7 @@
 {
   "name": "lovable",
   "description": "Claude Code integration for Lovable.dev projects. Provides commands, skills, and context for working with Lovable projects via two-way GitHub sync, with integrations with Lovable Cloud's native Edge Functions, database migrations, and backend deployments. Now with auto-push to GitHub and auto-deploy to Lovable!",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "author": {
     "name": "Felipe Matos from 10K Digital"
   },

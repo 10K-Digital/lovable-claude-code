@@ -222,9 +222,27 @@ After: git push origin main [succeeds]
    - yolo_mode OFF → Show manual prompts
 ```
 
-**Step 3: Execute or notify**
+**Step 3: Verify GitHub Sync (DOM-based)**
 ```
-If auto_deploy: on:
+IMPORTANT: Before submitting deployment prompts, verify Lovable has synced.
+
+Use DOM-based detection (faster & more reliable than visual scanning):
+1. Navigate to Lovable project page
+2. Use read_page to get page content
+3. Search for commit message text in sidebar
+4. Poll every 2 seconds until found (max 60 seconds)
+
+See automation-workflows.md Step 1.5 for detailed implementation.
+
+WHY THIS MATTERS:
+- Lovable syncs from GitHub asynchronously (1-2 min)
+- Deploying before sync = deploying stale code
+- DOM-based detection is faster than visual scanning for icons
+```
+
+**Step 4: Execute or notify**
+```
+If auto_deploy: on AND sync verified:
   - Show: "🤖 Auto-deploy: Backend changes detected..."
   - Execute browser automation
   - Run tests if enabled

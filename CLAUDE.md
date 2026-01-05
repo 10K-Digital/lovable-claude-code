@@ -316,7 +316,7 @@ Yolo mode (browser automation) is marked as **beta**:
 2. Update `.claude-plugin/plugin.json` version
 3. Update `CHANGELOG.md` with changes
 4. Update `README.md` if needed
-5. Commit with message: "Bump version to X.Y.Z"
+5. Commit with message: "Bump version to X.Y.Z" and e brief description of changes.
 6. Push to GitHub
 7. Plugin marketplace auto-updates from GitHub
 
