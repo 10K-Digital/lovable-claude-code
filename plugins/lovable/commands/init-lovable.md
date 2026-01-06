@@ -116,6 +116,29 @@ Any special context I should know?
 Want me to document main database tables? (yes/no)
 ```
 
+### Question 8.5: Project Structure Map
+```
+Would you like me to generate a Project Structure Map?
+
+This map helps me navigate your codebase faster by documenting:
+- Directory structure and purposes
+- Key files and their roles
+- Component organization patterns
+
+Generate map? (yes/no)
+Default: yes (recommended)
+```
+
+**If yes:** Use the codebase-map reference (`skills/lovable/references/codebase-map.md`) to:
+1. Scan directory structure (src/, supabase/, etc.)
+2. Count components, pages, hooks, functions
+3. Detect component organization pattern (flat, feature-based, atomic)
+4. Identify key files (App.tsx, utils.ts, supabase client)
+5. Detect state management pattern
+6. Generate the map section for CLAUDE.md
+
+**If no:** Skip map generation, don't include the Project Structure Map section in CLAUDE.md.
+
 ### Question 9: Auto-Push to GitHub
 ```
 ⚡ AUTO-PUSH TO GITHUB

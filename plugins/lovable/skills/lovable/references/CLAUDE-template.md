@@ -11,6 +11,53 @@
 - **Backend**: [Lovable Cloud / Own Supabase]
 - **Supabase Ref**: [SUPABASE_REF] (if own Supabase)
 
+## Project Structure Map
+
+> Quick navigation guide - run `/lovable:map --update` to refresh
+
+### Directory Layout
+```
+src/
+├── components/    # [COMPONENT_PATTERN] ([COMPONENT_COUNT] components)
+│   └── ui/        # shadcn/ui primitives
+├── pages/         # Route pages ([PAGE_COUNT] pages)
+├── hooks/         # Custom React hooks ([HOOK_COUNT] hooks)
+├── lib/           # Utilities and helpers
+├── integrations/  # External integrations
+│   └── supabase/  # Supabase client and generated types
+[ADDITIONAL_DIRS]
+
+supabase/
+├── functions/     # Edge Functions ([FUNCTION_COUNT] functions)
+└── migrations/    # Database migrations ([MIGRATION_COUNT] migrations)
+```
+
+### Key Files
+| File | Purpose |
+|------|---------|
+| `src/App.tsx` | Main app entry, routing |
+| `src/lib/utils.ts` | Shared utilities |
+| `src/integrations/supabase/client.ts` | Supabase client |
+[ADDITIONAL_KEY_FILES]
+
+### Patterns
+- **Components**: [COMPONENT_PATTERN_DESC]
+- **State**: [STATE_MANAGEMENT]
+- **Data Flow**: Pages → Hooks → Supabase Client → Edge Functions
+
+### Quick Lookup
+| Looking for... | Check here |
+|----------------|------------|
+| UI components | `src/components/ui/` |
+| Page routes | `src/pages/` or `src/App.tsx` |
+| API calls | `src/hooks/` or `src/integrations/` |
+| Types | `src/integrations/supabase/types.ts` |
+| Edge functions | `supabase/functions/[name]/index.ts` |
+
+*Map generated: [MAP_TIMESTAMP]*
+
+---
+
 ## 🚨 IMPORTANT: Always Commit and Push to GitHub
 
 **This is critical:** Lovable syncs changes FROM GitHub. If you don't commit and push your changes, they won't sync back to Lovable!

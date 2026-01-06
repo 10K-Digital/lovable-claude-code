@@ -7,55 +7,58 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a **Claude Code plugin** for integrating with Lovable.dev projects. It's distributed as a plugin, not a typical software project with build steps or test suites.
 
 - **Repository**: https://github.com/10K-Digital/lovable-claude-code
-- **Current Version**: 1.5.0
-- **Type**: Claude Code plugin (no compilation, no dependencies, no build process)
+- **Current Version**: 1.7.0
+- **Type**: Claude Code plugin marketplace (supports multiple plugins)
 - **Distribution**: Via Claude Code plugin marketplace (10K-Digital/lovable-claude-code)
 
 ## Architecture
 
-### Plugin Structure
+### Repository Structure (Multi-Plugin)
 
-This plugin follows Claude Code's plugin architecture with three core components:
+This repository is a **plugin marketplace** that can host multiple plugins. Currently contains the `lovable` plugin:
 
 ```
-.claude-plugin/          # Plugin metadata
-├── plugin.json          # Main plugin definition (version, description)
-└── marketplace.json     # Marketplace listing configuration
+.claude-plugin/              # Marketplace metadata (publisher-level)
+└── marketplace.json         # Lists all plugins in this marketplace
 
-commands/                # Slash commands (/lovable:* commands)
-├── init-lovable.md      # Initialize project context (most complex command)
-├── deploy-edge.md       # Deploy edge functions
-├── apply-migration.md   # Apply database migrations
-├── sync-lovable.md      # Sync with Lovable Cloud
-├── yolo.md             # Toggle automation mode
-└── [others].md
+plugins/                     # Plugin directory (one folder per plugin)
+└── lovable/                 # Lovable.dev integration plugin
+    ├── plugin.json          # Plugin definition (version, description)
+    ├── commands/            # Slash commands (/lovable:* commands)
+    │   ├── init-lovable.md  # Initialize project context
+    │   ├── map-codebase.md  # Generate Project Structure Map (NEW in v1.7.0)
+    │   ├── deploy-edge.md   # Deploy edge functions
+    │   ├── apply-migration.md # Apply database migrations
+    │   ├── sync-lovable.md  # Sync with Lovable Cloud
+    │   ├── yolo.md          # Toggle automation mode
+    │   └── [others].md
+    ├── hooks/               # Claude Code hooks
+    │   ├── hooks.json       # Hook configuration (Start and Stop events)
+    │   ├── auto-sync.sh     # Auto-sync (Start event)
+    │   └── auto-push.sh     # Auto-push (Stop event)
+    ├── skills/              # Contextual skills
+    │   ├── lovable/
+    │   │   ├── SKILL.md     # Core Lovable integration patterns
+    │   │   └── references/  # Supporting documentation
+    │   │       ├── CLAUDE-template.md  # Template for generated CLAUDE.md
+    │   │       ├── codebase-map.md     # Project Structure Map patterns (NEW)
+    │   │       ├── prompts.md          # Lovable prompt library
+    │   │       └── secret-detection.md # Secret scanning patterns
+    │   └── yolo/
+    │       ├── SKILL.md     # Browser automation orchestration
+    │       └── references/  # Automation workflows
+    └── agents/              # Autonomous agents
+        └── sync-agent.md    # Multi-phase sync agent
 
-hooks/                   # Claude Code hooks (NEW in v1.5.0)
-├── hooks.json           # Hook configuration (Start and Stop events)
-├── auto-sync.sh         # Auto-sync implementation script (Start event)
-└── auto-push.sh         # Auto-push implementation script (Stop event)
+.claude/                     # Repository-level settings
+└── settings.local.json      # Pre-approved git operations
 
-skills/                  # Contextual skills (auto-activate based on conditions)
-├── lovable/
-│   ├── SKILL.md        # Core Lovable integration patterns
-│   └── references/     # Supporting documentation
-│       ├── CLAUDE-template.md  # Template for generated CLAUDE.md files
-│       ├── prompts.md          # Lovable prompt library
-│       └── secret-detection.md # Secret scanning patterns
-└── yolo/
-    ├── SKILL.md        # Browser automation orchestration
-    └── references/     # Automation workflows
-        ├── automation-workflows.md  # Browser automation steps
-        ├── detection-logic.md       # When to trigger automation
-        ├── post-push-automation.md  # Auto-deploy after git push
-        ├── secrets-extraction.md    # Extract secrets from Lovable UI
-        └── testing-procedures.md    # Deployment verification tests
-
-agents/                  # (Currently empty, reserved for future)
-
-.claude/                 # Plugin-level settings
-└── settings.local.json  # Pre-approved git operations
+CLAUDE.md                    # This file (repo documentation)
+README.md                    # User-facing documentation
+CHANGELOG.md                 # Version history
 ```
+
+**Adding a new plugin**: Create a new folder under `plugins/` with its own `plugin.json` and add it to `marketplace.json`.
 
 ### Key Architectural Concepts
 
@@ -86,7 +89,7 @@ This plugin's core feature is **generating CLAUDE.md files** for user projects (
 1. User runs `/lovable:init` in their Lovable project
 2. Plugin scans their codebase (edge functions, migrations, secrets)
 3. Asks 11-13 questions about their setup
-4. Generates `CLAUDE.md` in their project root using `skills/lovable/references/CLAUDE-template.md`
+4. Generates `CLAUDE.md` in their project root using `plugins/lovable/skills/lovable/references/CLAUDE-template.md`
 5. This CLAUDE.md gives future Claude instances context about their Lovable project
 
 **Critical distinction**: This repo contains the plugin code. User projects get a generated CLAUDE.md.
@@ -97,7 +100,7 @@ This plugin's core feature is **generating CLAUDE.md files** for user projects (
 - **Hook-based implementation** - uses Claude Code's Start event hook for 100% reliability
 - Automatically pulls latest changes from GitHub when Claude starts working
 - **Always-on feature** - runs automatically on every Start event (no configuration needed)
-- Implemented in `hooks/auto-sync.sh` (triggered by `hooks/hooks.json`)
+- Implemented in `plugins/lovable/hooks/auto-sync.sh` (triggered by `plugins/lovable/hooks/hooks.json`)
 - Safety checks: only on main branch, no uncommitted changes, local is behind remote
 - Uses `git pull --rebase` to maintain clean history
 - Gracefully handles conflicts - aborts and notifies user if conflicts detected
@@ -108,7 +111,7 @@ This plugin's core feature is **generating CLAUDE.md files** for user projects (
 - Automatically commits and pushes to GitHub after Claude finishes responding
 - **Independent feature** - can be enabled without yolo mode
 - Configured via `Auto-Push to GitHub: on/off` in user's CLAUDE.md (separate section)
-- Implemented in `hooks/auto-push.sh` (triggered by `hooks/hooks.json`)
+- Implemented in `plugins/lovable/hooks/auto-push.sh` (triggered by `plugins/lovable/hooks/hooks.json`)
 - Safety checks: auto-push enabled, file changes exist, on main branch
 - **More reliable** than skill-based approach (v1.4.x) - hooks guarantee execution
 
@@ -116,7 +119,7 @@ This plugin's core feature is **generating CLAUDE.md files** for user projects (
 - After git push, automatically deploy backend changes to Lovable via browser automation
 - **Requires auto-push to be enabled** (dependency enforced)
 - Configured via yolo mode section in user's CLAUDE.md
-- Implemented in `skills/yolo/` with browser automation
+- Implemented in `plugins/lovable/skills/yolo/` with browser automation
 - Detects changes in `supabase/functions/` or `supabase/migrations/`
 
 **Independence vs Dependency**:
@@ -157,10 +160,10 @@ User starts conversation
 - Auto-triggers after git push if `auto_deploy: on`
 
 **Implementation**:
-- Orchestration logic: `skills/yolo/SKILL.md`
-- Browser workflows: `skills/yolo/references/automation-workflows.md`
-- Detection logic: `skills/yolo/references/detection-logic.md`
-- Testing: `skills/yolo/references/testing-procedures.md`
+- Orchestration logic: `plugins/lovable/skills/yolo/SKILL.md`
+- Browser workflows: `plugins/lovable/skills/yolo/references/automation-workflows.md`
+- Detection logic: `plugins/lovable/skills/yolo/references/detection-logic.md`
+- Testing: `plugins/lovable/skills/yolo/references/testing-procedures.md`
 
 **Graceful degradation**: Always provides manual prompts as fallback if automation fails.
 
@@ -170,10 +173,10 @@ User starts conversation
 
 When making changes that affect functionality:
 
-1. Update version in `.claude-plugin/plugin.json`
+1. Update version in `plugins/lovable/plugin.json`
 2. Add entry to `CHANGELOG.md` following existing format
 3. Update `README.md` if user-facing features changed
-4. Update `.claude-plugin/marketplace.json` if needed (usually auto-synced)
+4. Update `.claude-plugin/marketplace.json` to match plugin version
 
 **Version scheme**: Semantic versioning
 - Patch (1.4.x): Bug fixes, documentation
@@ -184,7 +187,7 @@ When making changes that affect functionality:
 
 #### Adding/Modifying Commands
 
-Commands are markdown files in `commands/`. Structure:
+Commands are markdown files in `plugins/lovable/commands/`. Structure:
 
 ```markdown
 ---
@@ -204,7 +207,7 @@ Step-by-step procedural logic...
 
 #### Adding/Modifying Skills
 
-Skills are markdown files in `skills/*/SKILL.md`. Structure:
+Skills are markdown files in `plugins/lovable/skills/*/SKILL.md`. Structure:
 
 ```markdown
 ---
@@ -223,7 +226,7 @@ Conceptual knowledge, patterns, and guidance...
 
 #### Reference Files
 
-Reference files (`skills/*/references/*.md`) contain:
+Reference files (`plugins/lovable/skills/*/references/*.md`) contain:
 - Detailed procedures that skills reference
 - Browser automation selectors and workflows
 - Edge case handling
@@ -274,7 +277,7 @@ This plugin bridges the gap by:
 
 ### 3. Question Flow in /init-lovable
 
-The initialization command asks 11-13 questions in specific order:
+The initialization command asks 12-14 questions in specific order:
 1. Backend type (Lovable Cloud vs own Supabase)
 2. Production URL
 3. GitHub repository
@@ -283,6 +286,7 @@ The initialization command asks 11-13 questions in specific order:
 6. Secret detection method
 7. Edge functions context
 8. Database tables (optional)
+8.5. **Project Structure Map** ← NEW in v1.7.0, helps Claude navigate faster
 9. **Auto-push toggle** ← NEW in v1.4.0, independent feature
 10. Special instructions
 11. Yolo mode toggle (checks auto-push requirement)
@@ -312,13 +316,14 @@ Yolo mode (browser automation) is marked as **beta**:
 
 ### Publishing a New Version
 
-1. Make your changes to commands/skills/references
-2. Update `.claude-plugin/plugin.json` version
-3. Update `CHANGELOG.md` with changes
-4. Update `README.md` if needed
-5. Commit with message: "Bump version to X.Y.Z" and e brief description of changes.
-6. Push to GitHub
-7. Plugin marketplace auto-updates from GitHub
+1. Make your changes to `plugins/lovable/` (commands/skills/references)
+2. Update `plugins/lovable/plugin.json` version
+3. Update `.claude-plugin/marketplace.json` version to match
+4. Update `CHANGELOG.md` with changes
+5. Update `README.md` if needed
+6. Commit with message: "Bump version to X.Y.Z" and a brief description of changes
+7. Push to GitHub
+8. Plugin marketplace auto-updates from GitHub
 
 ### Testing Changes Locally
 
@@ -332,7 +337,7 @@ This plugin has no automated tests. To test:
 
 ### Adding a New Command
 
-1. Create `commands/new-command.md`
+1. Create `plugins/lovable/commands/new-command.md`
 2. Add frontmatter with description
 3. Write step-by-step instructions for Claude
 4. Reference relevant skills if needed
@@ -341,7 +346,7 @@ This plugin has no automated tests. To test:
 
 ### Adding Reference Documentation
 
-1. Create file in appropriate `skills/*/references/` directory
+1. Create file in appropriate `plugins/lovable/skills/*/references/` directory
 2. Write detailed procedures, workflows, or templates
 3. Reference from skill's SKILL.md using relative path
 4. Keep references focused on implementation details
@@ -359,22 +364,37 @@ If you need to understand how this plugin works:
 
 1. **README.md** - User-facing documentation and feature explanations
 2. **CHANGELOG.md** - Version history and changes
-3. **commands/init-lovable.md** - Most complex command, orchestrates project setup
-4. **skills/lovable/SKILL.md** - Core integration patterns (auto-push moved to hooks in v1.5.0)
-5. **skills/yolo/SKILL.md** - Browser automation orchestration
-6. **skills/lovable/references/CLAUDE-template.md** - Template for generated project files
-7. **skills/yolo/references/automation-workflows.md** - Browser automation implementation
+3. **plugins/lovable/commands/init-lovable.md** - Most complex command, orchestrates project setup
+4. **plugins/lovable/commands/map-codebase.md** - Project Structure Map generation (NEW in v1.7.0)
+5. **plugins/lovable/skills/lovable/SKILL.md** - Core integration patterns
+6. **plugins/lovable/skills/yolo/SKILL.md** - Browser automation orchestration
+7. **plugins/lovable/skills/lovable/references/CLAUDE-template.md** - Template for generated project files
+8. **plugins/lovable/skills/lovable/references/codebase-map.md** - Map generation patterns (NEW in v1.7.0)
+9. **plugins/lovable/skills/yolo/references/automation-workflows.md** - Browser automation implementation
 
 
 
 
 Each version builds on previous automation layers to reduce manual work.
 
+### v1.7.0 Architecture Change
+
+In v1.7.0, two major changes were made:
+1. **Multi-plugin structure** - Repository restructured to support multiple plugins
+   - Plugin files moved to `plugins/lovable/`
+   - Marketplace.json at root points to plugin directories
+   - Enables adding future plugins to same marketplace
+2. **Project Structure Map** - New feature to help Claude navigate faster
+   - New command: `/lovable:map` for generating/updating maps
+   - Integration with `/lovable:init` (Question 8.5)
+   - Integration with `/lovable:sync --refresh-map`
+   - Generates ~60 line map with directory tree, key files, patterns
+
 ### v1.5.0 Architecture Change
 
 In v1.5.0, auto-push was reimplemented using Claude Code hooks for improved reliability:
 - **Hook-based implementation** - Auto-push logic moved from skills to hooks
-- Uses Stop event hook (`hooks/hooks.json` + `hooks/auto-push.sh`)
+- Uses Stop event hook (`plugins/lovable/hooks/hooks.json` + `plugins/lovable/hooks/auto-push.sh`)
 - **100% reliable** - Hooks execute deterministically vs. Claude remembering to check
 - Cleaner separation of concerns - Skills provide knowledge, hooks provide automation
 - All safety checks preserved (enabled in CLAUDE.md, changes exist, main branch)

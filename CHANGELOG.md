@@ -2,6 +2,91 @@
 
 All notable changes to the Lovable Claude Code plugin will be documented in this file.
 
+## [1.7.0] - 2026-01-05
+
+### Added
+
+#### Project Structure Map (Faster Navigation)
+
+**Problem**: Claude Code was slower than Lovable because it needs to search and understand the codebase on its own, while Lovable likely has a pre-built understanding of the project structure.
+
+**Solution**: Generate a "Project Structure Map" in CLAUDE.md that helps Claude navigate user codebases significantly faster.
+
+#### New Command: `/lovable:map`
+
+```bash
+/lovable:map              # Generate and display map
+/lovable:map --update     # Update CLAUDE.md with new map
+/lovable:map --verbose    # Show detailed scanning output
+```
+
+**What the map includes** (~60 lines for token efficiency):
+- **Directory tree** with purposes and item counts
+- **Key files table** (App.tsx, utils.ts, supabase client, etc.)
+- **Patterns detected** (component organization, state management)
+- **Data flow** overview
+- **Quick lookup table** for common searches
+
+#### Integration with Existing Commands
+
+**`/lovable:init`** - New Question 8.5:
+```
+Would you like me to generate a Project Structure Map?
+This helps me navigate your codebase faster.
+Generate map? (yes/no)
+Default: yes (recommended)
+```
+
+**`/lovable:sync`** - New flag:
+```bash
+/lovable:sync --refresh-map    # Regenerate Project Structure Map
+```
+
+### Changed
+
+#### Multi-Plugin Repository Architecture
+
+**Problem**: Repository structure only supported a single plugin, making it impossible to add more plugins to the marketplace.
+
+**Solution**: Restructure repository to support multiple plugins.
+
+**New structure**:
+```
+.claude-plugin/
+└── marketplace.json         # Publisher-level (lists all plugins)
+
+plugins/
+└── lovable/                 # Lovable plugin (all files moved here)
+    ├── plugin.json
+    ├── commands/
+    ├── skills/
+    ├── hooks/
+    └── agents/
+```
+
+**Migration notes**:
+- **No action required for users** - Installation command unchanged
+- Plugin files moved from root to `plugins/lovable/`
+- `marketplace.json` updated with new source path
+- Future plugins can be added under `plugins/[name]/`
+
+### Files Added
+
+- `plugins/lovable/commands/map-codebase.md` - New command for generating maps
+- `plugins/lovable/skills/lovable/references/codebase-map.md` - Map generation patterns and scanning logic
+
+### Files Modified
+
+- `plugins/lovable/skills/lovable/references/CLAUDE-template.md` - Added Project Structure Map section
+- `plugins/lovable/commands/init-lovable.md` - Added Question 8.5 for map generation
+- `plugins/lovable/commands/sync-lovable.md` - Added `--refresh-map` flag
+- `plugins/lovable/agents/sync-agent.md` - Added Phase 2.5 for map refresh
+- `.claude-plugin/marketplace.json` - Updated source path to `plugins/lovable/`
+- `CLAUDE.md` - Updated with new architecture and file paths
+- `README.md` - Added new command and features
+
+---
+
 ## [1.6.2] - 2026-01-05
 
 ### Improved

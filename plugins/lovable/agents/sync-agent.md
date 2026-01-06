@@ -58,7 +58,13 @@ The agent operates in one of five modes, determined by command flags:
 - Tool call details
 - **Use when**: Troubleshooting sync issues or developing/testing
 
-**Note**: Modes can be combined (e.g., `--dry-run --debug`)
+### Refresh Map Mode (--refresh-map flag)
+- Regenerate the Project Structure Map section
+- Rescan directory structure, components, pages, hooks
+- Update key files and patterns detection
+- **Use when**: Codebase structure has changed significantly
+
+**Note**: Modes can be combined (e.g., `--dry-run --debug --refresh-map`)
 
 ---
 
@@ -307,6 +313,73 @@ Please log in and I'll retry automatically.
 
 Or skip and continue with codebase data only.
 ```
+
+---
+
+## Phase 2.5: Map Refresh (Optional)
+
+**Objective**: Update the Project Structure Map if `--refresh-map` flag is provided.
+
+**Skip if**: `--refresh-map` flag not provided
+
+### When to Refresh
+
+The map should be refreshed when:
+- User explicitly requests via `--refresh-map` flag
+- Major directory restructuring detected
+- New project features added (pages, components, edge functions)
+
+### Implementation
+
+Use the codebase-map reference (`skills/lovable/references/codebase-map.md`) for:
+
+1. **Scan directory structure**:
+   - List `src/` subdirectories
+   - Count components, pages, hooks
+   - Count edge functions and migrations
+
+2. **Detect patterns**:
+   - Component organization (flat, feature-based, atomic)
+   - State management (Context, Zustand, Redux, TanStack Query)
+   - Data flow patterns
+
+3. **Identify key files**:
+   - Entry points (App.tsx, main.tsx)
+   - Utilities (lib/utils.ts)
+   - Supabase client
+   - Custom hooks
+
+4. **Generate updated map** (~60 lines):
+   - Directory tree with purposes and counts
+   - Key files table
+   - Patterns summary
+   - Quick lookup table
+
+### Update CLAUDE.md
+
+If `## Project Structure Map` section exists:
+- Replace entire section with new map
+- Preserve surrounding content
+
+If section doesn't exist:
+- Insert new map section after `## Project Overview`
+- Maintain document structure
+
+### Progress Reporting
+
+```
+Phase 2.5/5: Map refresh
+  ✅ Scanned directory structure
+  ✅ Detected patterns: Feature-based components, TanStack Query
+  ✅ Identified 8 key files
+  ✅ Generated updated map
+```
+
+### Success Criteria
+- ✅ Directory structure scanned
+- ✅ Patterns detected
+- ✅ Key files identified
+- ✅ Map section generated/updated
 
 ---
 

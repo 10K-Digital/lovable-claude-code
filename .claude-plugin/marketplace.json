@@ -9,9 +9,9 @@
   "plugins": [
     {
       "name": "lovable",
-      "source": "./",
-      "description": "Claude Code integration for Lovable.dev projects. Provides commands, skills, and context for working with Lovable projects via two-way GitHub sync, with integrations with Lovable Cloud's native Edge Functions, database migrations, and backend deployments. Now with auto-deploy after git push!",
-      "version": "1.4.1",
+      "source": "plugins/lovable/",
+      "description": "Claude Code integration for Lovable.dev projects. Provides commands, skills, and context for working with Lovable projects via two-way GitHub sync, with integrations with Lovable Cloud's native Edge Functions, database migrations, and backend deployments. Now with Project Structure Map for faster navigation!",
+      "version": "1.7.0",
       "author": {
         "name": "Felipe Matos from 10K Digital"
       },

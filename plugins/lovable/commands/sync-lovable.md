@@ -39,6 +39,7 @@ Use `/lovable:sync` when:
 /lovable:sync --manual          # Skip automation, use manual entry
 /lovable:sync --debug           # Show detailed automation logs
 /lovable:sync --force-rescan    # Ignore cached results, rescan everything
+/lovable:sync --refresh-map     # Regenerate Project Structure Map
 ```
 
 ---
@@ -58,6 +59,7 @@ Flags provided → Agent mode:
 --manual           → manual
 --debug            → debug
 --force-rescan     → invalidate cache, full rescan
+--refresh-map      → regenerate Project Structure Map
 ```
 
 **Multiple flags allowed**: e.g., `--dry-run --debug` combines preview + verbose logging

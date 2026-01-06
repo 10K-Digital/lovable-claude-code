@@ -9,11 +9,12 @@ Stop copy-pasting between Lovable and Claude. Stop wrestling with two-way sync. 
 ### **What You Get:**
 
 ✨ **Edit Lovable projects right in your IDE** with all of Claude Code's power
-⚡ **Auto-push to GitHub** - automatic commit and push after every task (NEW in v1.4.0!)
-🚀 **Auto-deploy to Lovable** - no manual commands needed (v1.3.0)
+🗺️ **Project Structure Map** - Claude navigates your codebase faster (NEW in v1.7.0!)
+⚡ **Auto-push to GitHub** - automatic commit and push after every task
+🚀 **Auto-deploy to Lovable** - no manual commands needed
 🤖 **Complete workflow automation** - from code changes to production
 💰 **Save credits** by using your Claude subscription for heavy lifting
-🔄 **Zero friction syncing** between your code, GitHub, and Lovable Cloud
+🔄 **Zero friction syncing** - between your code, GitHub, and Lovable Cloud
 🛡️ **Automatic secret detection** - never forget a required API key
 ⚡ **Instant setup** - generates project context automatically
 ✅ **Verification built-in** - tests run after every deployment
@@ -201,6 +202,7 @@ git push origin main
 | Command | What It Does | When To Use |
 |---------|-------------|-----------|
 | `/lovable:init` | Set up your project | First time setup |
+| `/lovable:map` | Generate Project Structure Map | Help Claude navigate faster (NEW!) |
 | `/lovable:sync` | Refresh config from Lovable Cloud | After team adds secrets/functions |
 | `/lovable:deploy-edge` | Deploy edge functions | After code changes (or auto with yolo) |
 | `/lovable:apply-migration` | Apply database migrations | After DB changes (or auto with yolo) |
@@ -415,7 +417,18 @@ Edit `CLAUDE.md` to customize anything—Claude Code reads and respects your con
 
 ## **Version History**
 
-**v1.4.1** (Latest) ⭐
+**v1.7.0** (Latest) ⭐
+- **Project Structure Map** - Claude navigates your codebase faster!
+  - New `/lovable:map` command for generating/updating maps
+  - Integrated into `/lovable:init` (optional question)
+  - Use `/lovable:sync --refresh-map` to update
+  - ~60 line map with directory tree, key files, patterns
+- **Multi-plugin architecture** - repository restructured for future plugins
+  - Plugin files now in `plugins/lovable/`
+  - Marketplace can host multiple plugins
+  - No changes needed for existing users
+
+**v1.4.1**
 - **Auto-push independence** - works separately from yolo mode!
 - Auto-push can be ON while yolo mode is OFF (manual deployment)
 - Yolo mode requires auto-push (enforced when enabling)
