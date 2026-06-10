@@ -2,6 +2,69 @@
 
 All notable changes to the Lovable Claude Code plugin will be documented in this file.
 
+## [1.9.0] - 2026-06-10
+
+### Added
+
+#### Preview Testing (Beta) - Test Your App in Lovable Preview Mode
+
+**Problem**: There was no way to verify that implemented features actually work in the running app. Yolo mode verified *deployments* (logs, console, endpoints), but nobody tested the app's actual user flows - signup, CRUD, invitations - in the live Preview.
+
+**Solution**: A new `testing` skill plus three commands that run standardized test plans against the **Lovable Preview app** via browser automation - after each implementation or as planned end-to-end runs.
+
+**Preview access (two methods):**
+1. **Tokenized preview URL** (preferred): the user opens the Lovable project in preview mode, clicks the arrow icon next to the preview address bar, and copies the URL from the new tab (`https://preview--app.lovable.app/?__lovable_token=...`). The token is valid for **7 days**; the plugin decodes the JWT expiry, stores the token gitignored, and re-prompts when it expires.
+2. **Logged-in browser session**: the user stays logged in to Lovable in Chrome (Claude in Chrome extension).
+
+**Standardized test workspace** created in the user's project:
+
+```
+.claude/lovable-claude/test/
+├── README.md              # Workspace guide
+├── test-config.json       # Preview URL, settings, coverage baseline (committed)
+├── preview-token.local    # Access token ONLY (gitignored, 7-day validity)
+├── plans/                 # Test plans (TP-NNN-slug.md, frontmatter + steps table)
+├── profiles/              # Test user personas (test credentials only)
+└── results/               # Dated test run reports
+```
+
+#### New Commands
+
+- **`/lovable:test-init`** - Test wizard: scans the codebase (routes, forms, mutations, auth flows, edge function calls, roles), suggests test plans for the app's main user actions, asks guided questions, captures the preview URL/token, and generates the workspace. `--refresh-token` renews an expired token.
+- **`/lovable:test-run`** - Executes test plans in Preview via browser automation. Scopes: `TP-NNN` (one plan), `--smoke`, `--changed` (plans covering recently changed files), `--all` (full end-to-end). Writes dated result reports and offers to fix failures.
+- **`/lovable:test-sync`** - Resync: diffs the codebase against the last sync commit, finds new/changed features lacking test plans (and unit tests), suggests new plans, updates stale ones, deprecates orphans. `--apply` and `--dry-run` flags.
+
+#### New Skill: `skills/testing/`
+
+- `SKILL.md` - Orchestration: activation conditions, access priority, workspace structure, configuration, error handling
+- `references/preview-access.md` - Token capture/parsing/storage (gitignore enforcement), JWT expiry decoding, access priority, re-prompt flows
+- `references/test-plan-format.md` - Standardized formats for plans, profiles, config, results, IDs
+- `references/test-wizard.md` - Codebase scanning heuristics and the guided question flow
+- `references/test-execution.md` - Browser automation execution, verification (UI/URL/console/network), sync wait after push, manual fallback
+
+#### Integrations
+
+- **`/lovable:init`** - New Question 8.7 asks about preview testing, captures the preview URL/token during setup, and offers to run the wizard afterwards. Generated CLAUDE.md gains a **Preview Testing Configuration** section.
+- **Yolo mode** - New optional verification **Level 4**: after auto-deploy, runs the `smoke` (or `all`) test plans per the `Test After Deploy` setting.
+- **Continuous maintenance** - When preview testing is enabled, implementing a new feature also adds/updates unit tests and test plans (automatic run if `Test After Implementation: on`, otherwise a `/lovable:test-sync` reminder).
+
+#### Safety
+
+- The preview token is a credential: stored only in `preview-token.local`, gitignored before writing, never echoed in output, CLAUDE.md, or commits
+- Tests target Preview, never production; payments/destructive steps are `[MANUAL]` by format rule
+- Never blocks: if automation is unavailable, plans double as manual test checklists
+
+### Fixed
+
+- `.claude-plugin/marketplace.json`: `source` field regressed again to the invalid `"plugins/lovable/"` form (causes `plugins.0.source: Invalid input` on install). Restored to `"./plugins/lovable"`.
+
+### Changed
+
+- `plugins/lovable/plugin.json`: Version 1.8.1 → 1.9.0, description and keywords updated
+- `.claude-plugin/marketplace.json`: Version 1.8.1 → 1.9.0
+- `plugins/lovable/skills/lovable/references/CLAUDE-template.md`: Added Preview Testing Configuration section
+- `plugins/lovable/skills/yolo/SKILL.md`: Added Level 4 (preview test plans) to post-deploy verification
+
 ## [1.8.1] - 2026-06-09
 
 ### Added

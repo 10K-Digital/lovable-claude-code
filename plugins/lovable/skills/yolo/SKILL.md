@@ -208,6 +208,9 @@ After successful deployment, run tests based on `yolo_testing` setting:
 - Skip all testing
 - Only confirm deployment success from Lovable response
 
+**Level 4 (optional): Preview test plans**
+If the project has preview testing enabled (CLAUDE.md → Preview Testing Configuration) and `Test After Deploy` is `smoke` or `all`, run the corresponding test plans against the Lovable Preview app after deployment verification. This is handled by the **testing skill** (`skills/testing/SKILL.md`) - equivalent to `/lovable:test-run --smoke` (or `--all`).
+
 See `references/testing-procedures.md` for complete testing workflows.
 
 ### 4. Debug Mode

@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a **Claude Code plugin** for integrating with Lovable.dev projects. It's distributed as a plugin, not a typical software project with build steps or test suites.
 
 - **Repository**: https://github.com/10K-Digital/lovable-claude-code
-- **Current Version**: 1.7.0
+- **Current Version**: 1.9.0
 - **Type**: Claude Code plugin marketplace (supports multiple plugins)
 - **Distribution**: Via Claude Code plugin marketplace (10K-Digital/lovable-claude-code)
 
@@ -31,6 +31,9 @@ plugins/                     # Plugin directory (one folder per plugin)
     │   ├── apply-migration.md # Apply database migrations
     │   ├── sync-lovable.md  # Sync with Lovable Cloud
     │   ├── yolo.md          # Toggle automation mode
+    │   ├── test-init.md     # Preview testing wizard (NEW in v1.9.0)
+    │   ├── test-run.md      # Run test plans in Preview (NEW in v1.9.0)
+    │   ├── test-sync.md     # Resync test coverage (NEW in v1.9.0)
     │   └── [others].md
     ├── hooks/               # Claude Code hooks
     │   ├── hooks.json       # Hook configuration (Start and Stop events)
@@ -44,9 +47,13 @@ plugins/                     # Plugin directory (one folder per plugin)
     │   │       ├── codebase-map.md     # Project Structure Map patterns (NEW)
     │   │       ├── prompts.md          # Lovable prompt library
     │   │       └── secret-detection.md # Secret scanning patterns
-    │   └── yolo/
-    │       ├── SKILL.md     # Browser automation orchestration
-    │       └── references/  # Automation workflows
+    │   ├── yolo/
+    │   │   ├── SKILL.md     # Browser automation orchestration
+    │   │   └── references/  # Automation workflows
+    │   └── testing/         # Preview testing (NEW in v1.9.0)
+    │       ├── SKILL.md     # Preview testing orchestration
+    │       └── references/  # preview-access, test-plan-format,
+    │                        # test-wizard, test-execution
     └── agents/              # Autonomous agents
         └── sync-agent.md    # Multi-phase sync agent
 
@@ -88,7 +95,7 @@ This plugin's core feature is **generating CLAUDE.md files** for user projects (
 
 1. User runs `/lovable:init` in their Lovable project
 2. Plugin scans their codebase (edge functions, migrations, secrets)
-3. Asks 11-13 questions about their setup
+3. Asks 12-15 questions about their setup
 4. Generates `CLAUDE.md` in their project root using `plugins/lovable/skills/lovable/references/CLAUDE-template.md`
 5. This CLAUDE.md gives future Claude instances context about their Lovable project
 
@@ -277,7 +284,7 @@ This plugin bridges the gap by:
 
 ### 3. Question Flow in /init-lovable
 
-The initialization command asks 12-14 questions in specific order:
+The initialization command asks 13-15 questions in specific order:
 1. Backend type (Lovable Cloud vs own Supabase)
 2. Production URL
 3. GitHub repository
@@ -287,6 +294,7 @@ The initialization command asks 12-14 questions in specific order:
 7. Edge functions context
 8. Database tables (optional)
 8.5. **Project Structure Map** ← NEW in v1.7.0, helps Claude navigate faster
+8.7. **Preview Testing** ← NEW in v1.9.0, captures preview URL/token, offers test wizard
 9. **Auto-push toggle** ← NEW in v1.4.0, independent feature
 10. Special instructions
 11. Yolo mode toggle (checks auto-push requirement)
@@ -306,11 +314,22 @@ Examples:
 
 ### 5. Beta Features
 
-Yolo mode (browser automation) is marked as **beta**:
+Yolo mode (browser automation) and preview testing are marked as **beta**:
 - Always show beta warnings when enabling
 - Explain risks and requirements
 - Provide manual alternatives
 - Gracefully handle UI changes
+
+### 6. Preview Testing (v1.9.0)
+
+Tests user projects **in Lovable Preview mode** via browser automation:
+
+- **Test workspace** in user projects: `.claude/lovable-claude/test/` (plans/, profiles/, results/, test-config.json)
+- **Preview access**: tokenized preview URL (`https://preview--app.lovable.app/?__lovable_token=...`, captured via the arrow icon next to the preview address bar, **7-day validity**) OR logged-in Chrome session
+- **Token is a credential**: stored ONLY in `preview-token.local` (gitignored before writing), never in CLAUDE.md/config/output
+- **Commands**: `/lovable:test-init` (wizard), `/lovable:test-run` (execute), `/lovable:test-sync` (coverage resync)
+- **Maintenance loop**: implementing a feature in a project with testing enabled should also add/update unit tests + test plans
+- **Implementation**: `plugins/lovable/skills/testing/` (SKILL.md + 4 references)
 
 ## Common Workflows
 
@@ -371,11 +390,23 @@ If you need to understand how this plugin works:
 7. **plugins/lovable/skills/lovable/references/CLAUDE-template.md** - Template for generated project files
 8. **plugins/lovable/skills/lovable/references/codebase-map.md** - Map generation patterns (NEW in v1.7.0)
 9. **plugins/lovable/skills/yolo/references/automation-workflows.md** - Browser automation implementation
+10. **plugins/lovable/skills/testing/SKILL.md** - Preview testing orchestration (NEW in v1.9.0)
+11. **plugins/lovable/skills/testing/references/test-plan-format.md** - Standardized test workspace formats (NEW in v1.9.0)
 
 
 
 
 Each version builds on previous automation layers to reduce manual work.
+
+### v1.9.0 Architecture Change
+
+v1.9.0 added **Preview Testing** - a third skill (`plugins/lovable/skills/testing/`):
+- Tests user apps in Lovable Preview mode via browser automation (after each implementation or planned e2e runs)
+- New commands: `/lovable:test-init` (wizard scans codebase, suggests plans), `/lovable:test-run`, `/lovable:test-sync` (coverage resync)
+- Standardized test workspace generated in user projects at `.claude/lovable-claude/test/`
+- Preview access via tokenized preview URL (7-day JWT, gitignored storage) or logged-in browser
+- Integrations: `/lovable:init` Question 8.7, yolo post-deploy verification Level 4
+- Also fixed the recurring marketplace.json `source` regression (`"plugins/lovable/"` → `"./plugins/lovable"`)
 
 ### v1.7.0 Architecture Change
 
