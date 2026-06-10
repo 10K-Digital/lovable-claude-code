@@ -9,7 +9,8 @@ Stop copy-pasting between Lovable and Claude. Stop wrestling with two-way sync. 
 ### **What You Get:**
 
 ✨ **Edit Lovable projects right in your IDE** with all of Claude Code's power
-🏗️ **Dual-architecture support** - works with both Vite SPA and TanStack Start (SSR) projects (NEW in v1.8.1!)
+🧪 **Preview Testing** - automated test plans run against your live Preview app (NEW in v1.9.0!)
+🏗️ **Dual-architecture support** - works with both Vite SPA and TanStack Start (SSR) projects (v1.8.1)
 🔌 **Lovable MCP integration** - deploy via API instead of browser (NEW in v1.8.0!)
 🗺️ **Project Structure Map** - Claude navigates your codebase faster (NEW in v1.7.0!)
 ⚡ **Auto-push to GitHub** - automatic commit and push after every task
@@ -135,6 +136,19 @@ Auto-push to GitHub → Claude detects changes → Automatic deployment (MCP or 
 
 **Complete automation:** With both features enabled, Claude handles everything from code changes to production deployment!
 
+### 🧪 **Preview Testing** (NEW in v1.9.0!)
+Claude tests your app **in Lovable Preview mode** via browser automation - real user flows in the real running app, after each implementation or as planned end-to-end runs.
+
+```bash
+/lovable:test-init     # Wizard: scans your app, suggests test plans for its main actions
+/lovable:test-run      # Run tests in Preview (--smoke | --changed | --all | TP-001)
+/lovable:test-sync     # New features missing tests? Resync coverage
+```
+
+**How it accesses your Preview:** either you're logged in to Lovable in Chrome, or you give it a tokenized preview URL - open your Lovable project in preview mode, click the **arrow icon next to the address bar**, and copy the URL from the new tab (`https://preview--your-app.lovable.app/?__lovable_token=...`). The token lasts 7 days; the plugin stores it gitignored and asks for a fresh one when it expires.
+
+**Standardized workspace** at `.claude/lovable-claude/test/`: test plans (`plans/TP-NNN-*.md`), test user profiles (`profiles/`), and dated run reports (`results/`). As you build new features, Claude keeps unit tests and test plans in sync - and `/lovable:test-sync` catches anything that slipped.
+
 ### 🔐 **Smart Secret Detection**
 Claude Code automatically finds every secret your functions need—by scanning your code. No more "why is this function failing??"—we tell you upfront: "You need STRIPE_WEBHOOK_SECRET."
 
@@ -221,6 +235,9 @@ git push origin main
 | `/lovable:deploy-edge` | Deploy edge functions | After code changes (or auto with yolo) |
 | `/lovable:apply-migration` | Apply database migrations | After DB changes (or auto with yolo) |
 | `/lovable:yolo on/off` | Toggle automation + auto-deploy | Configure how you work |
+| `/lovable:test-init` | Set up preview testing (wizard) | Once, to create test plans (NEW!) |
+| `/lovable:test-run` | Run tests in Lovable Preview | After changes or full e2e runs (NEW!) |
+| `/lovable:test-sync` | Resync tests with codebase | When new features lack test plans (NEW!) |
 
 **Pro tip:** With yolo mode on, you don't need `/deploy-edge`—just `git push` and it deploys automatically!
 
@@ -438,7 +455,14 @@ your-project/
 │   ├── Edge Functions list
 │   ├── Database tables
 │   ├── Project conventions
-│   └── Yolo mode settings
+│   ├── Yolo mode settings
+│   └── Preview testing settings
+├── .claude/lovable-claude/test/   # If preview testing enabled (/lovable:test-init)
+│   ├── test-config.json   # Preview URL + settings
+│   ├── preview-token.local # Access token (gitignored, 7-day validity)
+│   ├── plans/             # Test plans (TP-001-user-signup.md, ...)
+│   ├── profiles/          # Test user personas
+│   └── results/           # Test run reports
 └── ... your regular code
 ```
 
@@ -448,7 +472,17 @@ Edit `CLAUDE.md` to customize anything—Claude Code reads and respects your con
 
 ## **Version History**
 
-**v1.8.1** (Latest) ⭐
+**v1.9.0** (Latest) ⭐
+- **Preview Testing (beta)** - test your app in Lovable Preview mode via browser automation
+  - New `/lovable:test-init` wizard - scans your codebase, suggests test plans for main user actions
+  - New `/lovable:test-run` - run plans in Preview (`--smoke`, `--changed`, `--all`, or one plan)
+  - New `/lovable:test-sync` - resync coverage when new features lack test plans
+  - Standardized workspace at `.claude/lovable-claude/test/` (plans, profiles, results)
+  - Preview access via logged-in browser OR tokenized preview URL (7-day token, stored gitignored)
+  - Integrated into `/lovable:init` (Question 8.7) and yolo mode (post-deploy Level 4 tests)
+  - Fixed marketplace.json source field (install error regression)
+
+**v1.8.1**
 - **TanStack Start (SSR) support** - plugin now understands Lovable's new architecture
   - Auto-detects project type: Vite SPA (`vite.config.ts`) vs TanStack Start (`app.config.ts`)
   - Knows that TanStack server functions (`*.server.ts`) auto-deploy — no Lovable prompt needed

@@ -264,6 +264,30 @@ Changes live in Lovable
 git push origin main → Claude detects backend changes → Automatic deployment starts (MCP or browser)
 ```
 
+## Preview Testing Configuration
+
+> 🧪 Beta - tests the app in Lovable Preview mode via browser automation.
+> Test workspace: `.claude/lovable-claude/test/` (plans, profiles, results).
+
+- **Status**: [on / off]
+- **Preview URL**: [https://preview--app-name.lovable.app - WITHOUT token]
+- **Access Method**: [token / browser-login]
+- **Token Captured**: [date] (valid ~7 days - renew with `/lovable:test-init --refresh-token`)
+- **Test After Implementation**: [on / off]  # run affected test plans after each feature
+- **Test After Deploy**: [off / smoke / all]  # run after yolo auto-deploy
+- **Last Test Sync**: [commit hash]
+
+**Commands:**
+- `/lovable:test-run [TP-NNN | --all | --changed | --smoke]` - run tests in Preview
+- `/lovable:test-sync` - update test plans for new/changed features
+- `/lovable:test-init` - re-run setup wizard / refresh token
+
+**Maintenance rule:** when implementing a new feature, also add/update unit tests and
+test plans covering it (or run `/lovable:test-sync`). Keep plans' `covers:` paths accurate.
+
+> 🔐 The preview token is stored ONLY in `.claude/lovable-claude/test/preview-token.local`
+> (gitignored). Never write it to this file or commit it.
+
 ## Quick Prompts Reference
 
 | Task | Lovable Prompt |

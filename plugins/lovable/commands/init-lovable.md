@@ -147,6 +147,44 @@ Default: yes (recommended)
 
 **If no:** Skip map generation, don't include the Project Structure Map section in CLAUDE.md.
 
+### Question 8.7: Preview Testing
+```
+🧪 PREVIEW TESTING (BETA)
+
+I can test your app in Lovable Preview mode via browser automation -
+after each implementation or as planned end-to-end runs.
+
+This sets up a test workspace at .claude/lovable-claude/test/ with
+test plans, test user profiles, and results.
+
+To access your Preview I need ONE of:
+A) A preview URL with token - open your Lovable project in preview mode,
+   click the arrow icon at the top next to the address bar, and copy the
+   URL from the new tab (looks like:
+   https://preview--your-app.lovable.app/?__lovable_token=...).
+   The token is valid for 7 days; I'll ask for a fresh one when it expires.
+B) You stay logged in to Lovable in Chrome (Claude in Chrome extension)
+
+Enable preview testing? (yes/no)
+Default: no
+```
+
+**If yes:**
+1. Ask for the access method (paste tokenized URL, or browser-login)
+2. If a URL is pasted, process it per the testing skill's `preview-access.md` reference:
+   - Store the base URL + token expiry date for the CLAUDE.md section
+   - Store the token ONLY in `.claude/lovable-claude/test/preview-token.local` (add to `.gitignore` first - never commit the token)
+3. Include the **Preview Testing Configuration** section in the generated CLAUDE.md
+4. After CLAUDE.md generation completes, offer to run the full test wizard:
+   ```
+   Preview access configured. Build your initial test plans now?
+   The wizard scans your codebase and suggests plans for your app's
+   main user actions. (yes/no)
+   → runs /lovable:test-init
+   ```
+
+**If no:** Skip - the user can enable later with `/lovable:test-init`.
+
 ### Question 9: Auto-Push to GitHub
 ```
 ⚡ AUTO-PUSH TO GITHUB
@@ -426,6 +464,25 @@ When enabled, I'll automatically commit and push changes after each successful t
 3. Auto-push: I commit and push to GitHub
 4. Yolo mode: I detect backend changes and auto-deploy to Lovable (via MCP or browser)
 5. Done - zero manual commands needed!
+
+## Preview Testing Configuration
+[ONLY include if user enabled preview testing in Q8.7]
+
+> Tests run against the Lovable Preview app via browser automation.
+> Test plans live in `.claude/lovable-claude/test/`.
+
+- **Status**: on
+- **Preview URL**: [base preview URL, WITHOUT token]
+- **Access Method**: [token / browser-login]
+- **Token Captured**: [date] (valid ~7 days - run `/lovable:test-init --refresh-token` to renew)
+- **Test After Implementation**: [on/off]
+- **Test After Deploy**: [off / smoke / all]
+- **Last Test Sync**: [commit hash, set by /lovable:test-init]
+
+**Commands:** `/lovable:test-run [TP-NNN | --all | --changed | --smoke]` · `/lovable:test-sync`
+
+**Maintenance rule:** when implementing a new feature, also add/update unit tests and
+test plans for it (or run `/lovable:test-sync`). Keep `covers:` paths in plans accurate.
 
 ## Quick Prompts
 | Task | Prompt |
