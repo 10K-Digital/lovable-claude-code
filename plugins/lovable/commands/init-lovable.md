@@ -11,15 +11,22 @@ Set up Claude Code to work with this Lovable.dev project.
 1. **Read the lovable skill** for full context on integration patterns.
 
 2. **Scan the repository** to understand structure:
-   - Check for `supabase/` folder
-   - List Edge Functions in `supabase/functions/`
-   - List migrations in `supabase/migrations/`
-   - Check `src/integrations/supabase/client.ts` for config
+
+   **a. Detect project architecture** (check root directory first):
+   - `app.config.ts` present → **TanStack Start** (new, SSR, post-April 2026)
+   - `vite.config.ts` present → **Vite SPA** (legacy, CSR, pre-April 2026)
+   - Record this for use throughout initialization and in the generated CLAUDE.md
+
+   **b. Scan source files based on architecture:**
+   - *Vite SPA*: Check `src/` folder, `src/App.tsx`, `src/integrations/supabase/client.ts`
+   - *TanStack Start*: Check `app/` folder, `app/routes/`, `app/integrations/supabase/client.ts`
+   - *Both*: Check for `supabase/` folder, list Edge Functions in `supabase/functions/`, list migrations in `supabase/migrations/`
    - Read `package.json` for project name
-   - Scan for secrets using secret-detection skill:
-     - `supabase/functions/**/*.ts` for `Deno.env.get("SECRET_NAME")`
-     - `.env.example`, `.env.template` for KEY=value patterns
-     - Context-based detection (OpenAI, Stripe, Resend, Twilio, etc.)
+
+   **c. Scan for secrets:**
+   - `supabase/functions/**/*.ts` for `Deno.env.get("SECRET_NAME")`
+   - `.env.example`, `.env.template` for KEY=value patterns
+   - Context-based detection (OpenAI, Stripe, Resend, Twilio, etc.)
 
 3. **Ask questions ONE at a time** using the ask_user tool:
 
@@ -130,12 +137,13 @@ Default: yes (recommended)
 ```
 
 **If yes:** Use the codebase-map reference (`skills/lovable/references/codebase-map.md`) to:
-1. Scan directory structure (src/, supabase/, etc.)
-2. Count components, pages, hooks, functions
-3. Detect component organization pattern (flat, feature-based, atomic)
-4. Identify key files (App.tsx, utils.ts, supabase client)
-5. Detect state management pattern
-6. Generate the map section for CLAUDE.md
+1. Use the already-detected architecture (Vite SPA vs TanStack Start) to know which directories to scan
+2. Scan directory structure (`src/` or `app/` depending on architecture, plus `supabase/`)
+3. Count components, pages/routes, hooks, functions
+4. Detect component organization pattern (flat, feature-based, atomic)
+5. Identify key files (App.tsx or `app/routes/__root.tsx`, utils.ts, supabase client)
+6. Detect state management pattern
+7. Generate the map section for CLAUDE.md using the correct template for the architecture
 
 **If no:** Skip map generation, don't include the Project Structure Map section in CLAUDE.md.
 
@@ -294,21 +302,43 @@ This is required for browser automation.
 - **Lovable Project URL**: [if provided]
 - **GitHub**: [user input]
 - **Backend**: [Lovable Cloud / Own Supabase]
+- **Architecture**: [Vite SPA (CSR) / TanStack Start (SSR)]
 
 ## Workflow Rules
 
+[IF VITE SPA - vite.config.ts detected]
 ### ✅ Safe to edit and push to `main`:
-- All `src/` files
-- Config files
-- Edge Function code (deployment needs Lovable)
+- All `src/` files (components, pages, hooks, utils)
+- Config files (`vite.config.ts`, `tailwind.config.js`)
+- Edge Function code in `supabase/functions/` (deployment needs Lovable)
+- Migration files in `supabase/migrations/` (apply needs Lovable)
 
 ### ⚠️ Requires Lovable prompt after edit:
 - Edge Functions → `"Deploy the [name] edge function"`
-- Migrations → `"Apply pending migrations"`
+- Migrations → `"Apply pending Supabase migrations"`
 
 ### ❌ Must use Lovable:
 - Create tables, RLS, storage buckets
 - Add secrets (Cloud UI)
+- Deploy Supabase Edge Functions
+
+[IF TANSTACK START - app.config.ts detected]
+### ✅ Safe to edit and push to `main`:
+- All `app/` files (routes, components, lib, integrations)
+- TanStack server functions (`app/**/*.server.ts`) — auto-deploy, no Lovable prompt needed
+- Config files (`app.config.ts`, `tailwind.config.js`)
+- Supabase Edge Function code in `supabase/functions/` (deployment still needs Lovable)
+- Migration files in `supabase/migrations/` (apply needs Lovable)
+
+### ⚠️ Requires Lovable prompt after edit:
+- Supabase Edge Functions → `"Deploy the [name] edge function"`
+- Migrations → `"Apply pending Supabase migrations"`
+- Note: TanStack server functions (`*.server.ts`) are NOT the same as Supabase Edge Functions — they auto-deploy via GitHub
+
+### ❌ Must use Lovable:
+- Create tables, RLS, storage buckets
+- Add secrets (Cloud UI)
+- Deploy Supabase Edge Functions
 
 ## Secrets
 

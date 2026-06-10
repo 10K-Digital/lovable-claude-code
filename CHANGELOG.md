@@ -2,6 +2,67 @@
 
 All notable changes to the Lovable Claude Code plugin will be documented in this file.
 
+## [1.8.1] - 2026-06-09
+
+### Added
+
+#### TanStack Start (SSR) Architecture Support
+
+**Problem**: Lovable launched TanStack Start as the default for all new projects (post-April 2026), replacing the Vite SPA architecture. New projects use SSR, file-based routing (`app/routes/`), and TanStack server functions — a fundamentally different structure from legacy projects.
+
+**Solution**: Update plugin to detect and support both architectures, while remaining fully backward-compatible with all existing Vite SPA projects.
+
+**Key architectural differences handled:**
+
+| Feature | Vite SPA (legacy) | TanStack Start (new) |
+|---------|-------------------|----------------------|
+| Config file | `vite.config.ts` | `app.config.ts` |
+| Source directory | `src/` | `app/` |
+| Routing | React Router in `src/App.tsx` | File-based in `app/routes/` |
+| Rendering | Client-side only | Server-side (SSR) |
+| Server logic | Only via Supabase Edge Functions | Also via TanStack server functions (`*.server.ts`) |
+| Server functions deploy | Via Lovable prompt | Auto via GitHub sync |
+
+**Critical distinction for Claude:** TanStack server functions (`app/**/*.server.ts`) are **not** Supabase Edge Functions. They auto-deploy when pushed to GitHub and never need a Lovable deployment prompt. Only `supabase/functions/` still requires manual deployment via Lovable.
+
+#### Files Updated
+
+- `plugins/lovable/skills/lovable/SKILL.md`
+  - Added "Project Architecture Types" section with detection rules
+  - Separated "What Syncs Automatically" into Vite SPA and TanStack Start sections
+  - Updated "File Structure Reference" to document both architectures
+  - Clarified that TanStack server functions auto-deploy (no Lovable prompt needed)
+
+- `plugins/lovable/skills/lovable/references/codebase-map.md`
+  - Added Step 0: Architecture detection (`app.config.ts` vs `vite.config.ts`)
+  - Added TanStack Start directory scanning (`app/`, `app/routes/`)
+  - Added TanStack Start key files table (`__root.tsx`, `*.server.ts`, `app.config.ts`)
+  - Updated routing detection to include TanStack file-based routing conventions
+  - Added separate map templates for Vite SPA and TanStack Start projects
+
+- `plugins/lovable/skills/lovable/references/CLAUDE-template.md`
+  - Added `Architecture` field to Project Overview
+  - Added dual-architecture Project Structure Map templates (Vite SPA and TanStack Start)
+  - Added architecture-aware Workflow Rules with inline comments for conditional use
+
+- `plugins/lovable/commands/init-lovable.md`
+  - Updated scan step (Step 2) to detect architecture type first
+  - Made source file scanning conditional on detected architecture
+  - Updated Question 8.5 (map generation) to use architecture-specific scanning
+  - Updated CLAUDE.md template to include Architecture field and conditional workflow rules
+
+### Changed
+
+- `plugins/lovable/plugin.json`: Version 1.8.0 → 1.8.1
+- `.claude-plugin/marketplace.json`: Version 1.8.0 → 1.8.1
+
+### Backward Compatibility
+
+**No action required for existing users.** All Vite SPA projects continue to work exactly as before. The plugin detects the architecture automatically and applies the appropriate rules.
+
+- Old projects (Vite SPA) → plugin behaves identically to v1.8.0
+- New projects (TanStack Start) → plugin now correctly understands the structure
+
 ## [1.8.0] - 2026-06-09
 
 ### Added

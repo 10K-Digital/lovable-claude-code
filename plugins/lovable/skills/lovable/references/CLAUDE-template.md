@@ -10,11 +10,13 @@
 - **GitHub**: [GITHUB_URL]
 - **Backend**: [Lovable Cloud / Own Supabase]
 - **Supabase Ref**: [SUPABASE_REF] (if own Supabase)
+- **Architecture**: [Vite SPA (CSR) / TanStack Start (SSR)]
 
 ## Project Structure Map
 
 > Quick navigation guide - run `/lovable:map --update` to refresh
 
+<!-- FOR VITE SPA PROJECTS (vite.config.ts): use this layout -->
 ### Directory Layout
 ```
 src/
@@ -28,7 +30,7 @@ src/
 [ADDITIONAL_DIRS]
 
 supabase/
-├── functions/     # Edge Functions ([FUNCTION_COUNT] functions)
+├── functions/     # Supabase Edge Functions ([FUNCTION_COUNT]) — needs deploy
 └── migrations/    # Database migrations ([MIGRATION_COUNT] migrations)
 ```
 
@@ -52,7 +54,58 @@ supabase/
 | Page routes | `src/pages/` or `src/App.tsx` |
 | API calls | `src/hooks/` or `src/integrations/` |
 | Types | `src/integrations/supabase/types.ts` |
-| Edge functions | `supabase/functions/[name]/index.ts` |
+| Supabase Edge functions | `supabase/functions/[name]/index.ts` |
+
+<!-- FOR TANSTACK START PROJECTS (app.config.ts): replace above with this layout -->
+<!--
+### Directory Layout
+```
+app/
+├── routes/        # File-based routes ([ROUTE_COUNT] routes)
+│   ├── __root.tsx # Root layout
+│   └── *.tsx      # Page routes (filename = URL path)
+├── components/    # [COMPONENT_PATTERN] ([COMPONENT_COUNT] components)
+│   └── ui/        # shadcn/ui primitives
+├── lib/           # Utilities and helpers
+├── integrations/  # External integrations
+│   └── supabase/  # Supabase client and generated types
+[ADDITIONAL_DIRS]
+
+supabase/
+├── functions/     # Supabase Edge Functions ([FUNCTION_COUNT]) — needs deploy
+└── migrations/    # Database migrations ([MIGRATION_COUNT] migrations)
+```
+
+### Key Files
+| File | Purpose |
+|------|---------|
+| `app/routes/__root.tsx` | Root layout (wraps all pages) |
+| `app/routes/index.tsx` | Home page (/) |
+| `app/lib/utils.ts` | Shared utilities |
+| `app/integrations/supabase/client.ts` | Supabase client |
+| `app.config.ts` | TanStack Start configuration |
+[ADDITIONAL_KEY_FILES]
+
+### Patterns
+- **Architecture**: SSR — HTML rendered server-side before browser
+- **Routing**: File-based (app/routes/*.tsx = URL routes)
+- **Server functions**: *.server.ts files auto-deploy — no Lovable prompt needed
+- **Components**: [COMPONENT_PATTERN_DESC]
+- **State**: [STATE_MANAGEMENT]
+- **Data Flow**: Routes (loaders) → Supabase Client → Edge Functions
+
+### Quick Lookup
+| Looking for... | Check here |
+|----------------|------------|
+| UI components | `app/components/ui/` |
+| Page routes | `app/routes/` (file = route) |
+| Root layout | `app/routes/__root.tsx` |
+| Server functions | `app/**/*.server.ts` (auto-deploy) |
+| API calls | `app/lib/` or `app/integrations/` |
+| Types | `app/integrations/supabase/types.ts` |
+| Supabase Edge functions | `supabase/functions/[name]/index.ts` |
+```
+-->
 
 *Map generated: [MAP_TIMESTAMP]*
 
@@ -89,9 +142,10 @@ Changes live in Lovable
 
 ## Workflow Rules
 
+<!-- If Architecture: Vite SPA, use these rules -->
 ### ✅ Safe to edit and push to `main`:
 - All files in `src/` (components, pages, hooks, utils)
-- Config files (vite.config.ts, tailwind.config.js)
+- Config files (`vite.config.ts`, `tailwind.config.js`)
 - Package.json dependencies
 - Edge Function **code** in `supabase/functions/`
 - Migration **files** in `supabase/migrations/`
@@ -105,7 +159,32 @@ Changes live in Lovable
 - Set up RLS policies
 - Add secrets (Cloud → Secrets UI)
 - Create storage buckets
-- Deploy Edge Functions
+- Deploy Supabase Edge Functions
+
+<!-- If Architecture: TanStack Start, replace the above with:
+
+### ✅ Safe to edit and push to `main`:
+- All files in `app/` (routes, components, lib, integrations)
+- TanStack server functions (`app/**/*.server.ts`) — auto-deploy via GitHub, no prompt needed
+- Config files (`app.config.ts`, `tailwind.config.js`)
+- Package.json dependencies
+- Supabase Edge Function **code** in `supabase/functions/`
+- Migration **files** in `supabase/migrations/`
+
+### ⚠️ After editing, provide Lovable prompt:
+- **Supabase Edge Functions**: `"Deploy the [name] edge function"`
+- **Migrations**: `"Apply pending Supabase migrations"`
+
+> Note: TanStack server functions (`*.server.ts` in `app/`) are NOT Supabase Edge Functions.
+> They deploy automatically with the rest of your app — no Lovable prompt needed.
+
+### ❌ Must go through Lovable:
+- Create/modify database tables
+- Set up RLS policies
+- Add secrets (Cloud → Secrets UI)
+- Create storage buckets
+- Deploy Supabase Edge Functions
+-->
 
 ## Secrets
 
