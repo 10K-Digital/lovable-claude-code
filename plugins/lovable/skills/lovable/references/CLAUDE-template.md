@@ -149,9 +149,10 @@ Changes live in Lovable
 
 ## Yolo Mode Configuration (Beta)
 
-> ⚠️ Beta feature - uses browser automation to auto-submit Lovable prompts and run tests
+> ⚠️ Beta feature - auto-submits Lovable prompts via MCP or browser automation
 
 - **Status**: [on / off]
+- **Deployment Method**: [auto / mcp / browser]  # auto tries MCP first, then browser
 - **Auto-Deploy**: [on / off]  # Auto-deploy to Lovable after git push (no manual command needed)
 - **Deployment Testing**: [on / off]  # Run verification tests after Lovable deployments
 - **Auto-run Tests**: [on / off]  # Run project tests after every git push
@@ -163,20 +164,25 @@ Changes live in Lovable
   - Migration application with verification
   - Automated code testing after every git push
 
-**Configure:** Run `/lovable:yolo on/off [--auto-deploy|--no-auto-deploy] [--testing|--no-testing] [--auto-tests|--no-auto-tests] [--debug]`
+**Configure:** Run `/lovable:yolo on/off [--mcp|--browser|--auto] [--testing|--no-testing] [--debug]`
+**Connect MCP:** Run `/lovable:connect-mcp` for faster, more reliable automation
+
+**Deployment methods:**
+- **MCP** (recommended): Sends prompts via Lovable API - faster, no Chrome extension needed
+  - Setup: `/lovable:connect-mcp`
+- **Browser** (fallback): Navigates to Lovable UI - requires Chrome extension
 
 **How it works:**
-- When yolo mode is on, I'll automatically navigate to Lovable and submit prompts
-- **Auto-Deploy** (NEW): Automatically deploys backend changes after git push - no need to run `/deploy-edge`
+- **Deployment Method: auto** - Tries MCP first, falls back to browser if not connected
+- **Deployment Method: mcp** - Uses Lovable MCP only (best performance)
+- **Deployment Method: browser** - Uses browser automation (legacy)
+- Auto-Deploy: Automatically deploys backend changes after git push - no need to run `/deploy-edge`
 - Deployment testing verifies deployments (3 levels: basic, console errors, functional)
-- Auto-run tests execute your project's test suite after every successful git push to main
-- Debug mode shows detailed browser automation logs
 - Always has manual fallback if automation fails
-- Test failures don't block deployments (manual review available)
 
 **Auto-Deploy Flow:**
 ```
-git push origin main → Claude detects backend changes → Automatic deployment starts
+git push origin main → Claude detects backend changes → Automatic deployment starts (MCP or browser)
 ```
 
 ## Quick Prompts Reference

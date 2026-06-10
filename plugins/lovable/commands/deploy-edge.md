@@ -62,17 +62,19 @@ After generating the prompt, check if yolo mode is enabled:
 1. **Read CLAUDE.md:**
    - Look for `## Yolo Mode Configuration (Beta)` section
    - Check `Status` field
-   - Extract `Testing` and `Debug Mode` settings
+   - Extract `Deployment Method`, `Testing`, and `Debug Mode` settings
 
 2. **If `Status: on`:**
    - ✅ Yolo mode is enabled
    - Activate yolo skill (see `/skills/yolo/SKILL.md`)
-   - Execute browser automation workflow:
-     a. Navigate to Lovable project
-     b. Submit deployment prompt
-     c. Monitor for successful deployment
-     d. Run tests if `Testing: on`
-     e. Show deployment summary
+   - Choose deployment method based on `Deployment Method` field:
+     - `mcp` or `auto`: Check if Lovable MCP tools are available
+       - If MCP available: Use MCP `send_message` to submit the prompt
+       - If MCP unavailable and `auto`: Fall back to browser automation
+       - If MCP unavailable and `mcp`: Show manual prompt
+     - `browser`: Use browser automation workflow
+   - Run tests if `Testing: on`
+   - Show deployment summary
    - **Exit** (don't show manual prompt)
 
 3. **If `Status: off` or not found:**
@@ -82,7 +84,7 @@ After generating the prompt, check if yolo mode is enabled:
      ```
      💡 **Tip:** Automate deployments with yolo mode!
         Run: /lovable:yolo on
-        Benefits: No manual copy-paste, automatic testing
+        For fastest automation: /lovable:connect-mcp  then  /lovable:yolo on --mcp
      ```
 
 ## Example Output
@@ -122,7 +124,7 @@ After deployment, verify:
 
 💡 **Tip:** Automate deployments with yolo mode!
    Run: /lovable:yolo on
-   Benefits: No manual copy-paste, automatic testing, auto-run code tests
+   For fastest automation: /lovable:connect-mcp  then  /lovable:yolo on --mcp
 ```
 
 ### Example 2: Yolo Mode Enabled (Automated)
@@ -135,17 +137,12 @@ Modified functions:
 
 ✅ All changes committed and pushed to main
 
-🤖 Yolo mode: Deploying send-email edge function
+🤖 Yolo mode (MCP): Deploying send-email edge function
 
-⏳ Step 1/8: Navigating to Lovable project...
-⏳ Step 2/8: Waiting for GitHub sync...
-✅ Step 3/8: Sync verified - Lovable has latest code
-✅ Step 4/8: Located chat interface
-✅ Step 5/8: Submitted prompt: "Deploy the send-email edge function"
-⏳ Step 6/8: Waiting for Lovable response...
-✅ Step 7/8: Deployment confirmed
-⏳ Step 8/8: Running verification tests...
-✅ Step 8/8: All tests passed
+⏳ Sending deployment prompt via Lovable MCP...
+✅ Deployment confirmed (3.2s)
+⏳ Running verification tests...
+✅ All tests passed
 
 ## Deployment Summary
 

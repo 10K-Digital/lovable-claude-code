@@ -2,6 +2,80 @@
 
 All notable changes to the Lovable Claude Code plugin will be documented in this file.
 
+## [1.8.0] - 2026-06-09
+
+### Added
+
+#### Lovable MCP Integration (Yolo Mode Upgrade)
+
+**Problem**: Yolo mode required the Claude in Chrome extension and browser automation to submit prompts to Lovable. This was slow, fragile to UI changes, and unavailable in headless environments.
+
+**Solution**: Integrate the official Lovable MCP server (`https://mcp.lovable.dev`) as the preferred deployment method in yolo mode. When connected, Claude sends prompts directly via API instead of navigating the browser.
+
+**Benefits of MCP over browser automation:**
+- 3-5x faster deployments (API vs browser navigation)
+- No Chrome extension required
+- Not affected by Lovable UI changes
+- Works in any environment (headless, CI, etc.)
+
+#### New Command: `/lovable:connect-mcp`
+
+Step-by-step setup wizard that guides users through connecting the Lovable MCP server to Claude:
+
+```bash
+/lovable:connect-mcp           # Interactive setup (Claude Code, Desktop, or claude.ai)
+/lovable:connect-mcp verify    # Verify the connection is working
+/lovable:connect-mcp status    # Show current MCP connection status
+```
+
+The command covers setup for:
+- **Claude Code** - `claude mcp add --transport http lovable https://mcp.lovable.dev`
+- **Claude Desktop** - Settings → Connectors → Add custom connector
+- **claude.ai** - Settings → Connectors → Add custom connector
+
+#### New Deployment Method Flag in `/lovable:yolo`
+
+```bash
+/yolo on --mcp      # Use Lovable MCP only (fastest)
+/yolo on --browser  # Use browser automation only (legacy)
+/yolo on --auto     # Try MCP first, fall back to browser (default)
+```
+
+#### New Reference: `skills/yolo/references/mcp-workflows.md`
+
+Complete implementation reference for MCP-based deployments:
+- Project ID extraction from `lovable_url`
+- `send_message` tool call patterns
+- Async polling with `get_message`
+- Error handling (auth errors, credits exhausted, MCP not available)
+- Comparison table: MCP vs browser automation
+
+#### Deployment Method in CLAUDE.md
+
+New `Deployment Method` field in yolo mode configuration:
+```markdown
+- **Deployment Method**: auto   # auto | mcp | browser
+```
+
+### Changed
+
+#### Yolo Mode Priority Order
+
+Yolo mode now uses a 3-tier priority system:
+1. **Lovable MCP** (preferred) - tries first when `auto` or `mcp`
+2. **Browser automation** (fallback) - used when MCP unavailable and `auto`
+3. **Manual prompt** (last resort) - always available as copy-paste fallback
+
+#### Yolo Mode Beta Warning
+
+The `/yolo on` command now detects whether MCP is connected and shows context-aware warnings:
+- MCP connected: Highlights API speed and no Chrome extension requirement
+- MCP not connected: Suggests running `/lovable:connect-mcp` for better experience
+
+#### `/deploy-edge` Yolo Mode Integration
+
+Updated to route through MCP when available, with browser automation fallback.
+
 ## [1.7.0] - 2026-01-05
 
 ### Added

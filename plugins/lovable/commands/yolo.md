@@ -1,24 +1,27 @@
 ---
-description: Enable/disable yolo mode for automated Lovable deployments with browser automation. Control auto-deploy, testing, and debug options.
+description: Enable/disable yolo mode for automated Lovable deployments via MCP or browser automation. Control deployment method, testing, and debug options.
 ---
 
 # Yolo Mode Toggle
 
-Enable or disable yolo mode for automated Lovable prompt submission via browser automation.
+Enable or disable yolo mode for automated Lovable prompt submission via Lovable MCP (preferred) or browser automation.
 
 ## Syntax
 
 ```bash
-/yolo [on|off] [--testing|--no-testing] [--debug]
+/yolo [on|off] [--mcp|--browser|--auto] [--testing|--no-testing] [--debug]
 ```
 
 ## Arguments
 
-- `on` - Enable yolo mode (default: with testing, without debug; requires auto-push)
+- `on` - Enable yolo mode (default: auto method, with testing, without debug; requires auto-push)
 - `off` - Disable yolo mode (does not affect auto-push)
+- `--mcp` - Use Lovable MCP only (fastest, requires MCP connection)
+- `--browser` - Use browser automation only (requires Chrome extension)
+- `--auto` - Try MCP first, fall back to browser (default)
 - `--testing` - Enable all 3 testing levels after deployment (default when enabling)
 - `--no-testing` - Skip testing, only deploy
-- `--debug` - Enable verbose logging of browser automation steps
+- `--debug` - Enable verbose logging of automation steps
 - (no arguments) - Show current yolo mode status
 
 **Note:** Yolo mode requires auto-push to be enabled. If auto-push is off, you'll be prompted to enable it.
@@ -37,10 +40,34 @@ Extract the mode (`on`/`off`) and flags from the command:
 
 **a) Show Beta Warning:**
 
+Check if Lovable MCP tools are available in the current session. Display the appropriate warning:
+
+**If Lovable MCP is available:**
 ```
 ⚠️ YOLO MODE (BETA)
 
-This feature uses browser automation to automatically submit Lovable prompts.
+Deployment method: Lovable MCP (connected)
+
+Benefits:
+✅ Auto-deploy after git push - no manual /deploy-edge command needed
+✅ No manual copy-paste of prompts
+✅ Automatic deployment verification
+✅ Fast API-based deployments (3-5x faster than browser)
+✅ No Chrome extension required
+
+Risks:
+⚠️ Beta feature - may have bugs
+⚠️ Uses Lovable credits for each send_message call
+⚠️ Always has manual fallback if automation fails
+
+Continue enabling yolo mode? (yes/no)
+```
+
+**If Lovable MCP is NOT available:**
+```
+⚠️ YOLO MODE (BETA)
+
+Deployment method: Browser automation (MCP not connected)
 
 Benefits:
 ✅ Auto-deploy after git push - no manual /deploy-edge command needed
@@ -53,6 +80,9 @@ Risks:
 ⚠️ Requires Chrome extension and browser session
 ⚠️ Lovable UI changes may break automation
 ⚠️ Always has manual fallback if automation fails
+
+💡 Tip: Connect Lovable MCP for faster, more reliable automation:
+   Run: /lovable:connect-mcp
 
 Continue enabling yolo mode? (yes/no)
 ```
@@ -138,10 +168,11 @@ Wait for user confirmation. If no, abort.
 ```markdown
 ## Yolo Mode Configuration (Beta)
 
-> ⚠️ Beta feature - uses browser automation to auto-submit Lovable prompts
+> ⚠️ Beta feature - auto-submits Lovable prompts via MCP or browser automation
 > ⚠️ Requires auto-push to be enabled
 
 - **Status**: on
+- **Deployment Method**: [auto if --auto or default; mcp if --mcp; browser if --browser]
 - **Deployment Testing**: [on if --testing or default, off if --no-testing]
 - **Auto-run Tests**: off
 - **Debug Mode**: [on if --debug, off otherwise]
@@ -152,7 +183,7 @@ Wait for user confirmation. If no, abort.
   - Migration application
   - Automated testing after code push
 
-**Configure:** Run `/yolo on/off [--testing|--no-testing] [--debug]`
+**Configure:** Run `/yolo on/off [--mcp|--browser|--auto] [--testing|--no-testing] [--debug]`
 ```
 
 4. If `lovable_url` was added, update the Project Overview section
@@ -163,11 +194,20 @@ Wait for user confirmation. If no, abort.
 ✅ Yolo mode ENABLED
 
 Configuration:
+- Deployment Method: [🔌 MCP (auto) / 🌐 Browser (auto) / 🔌 MCP (forced) / 🌐 Browser (forced)]
 - Testing: [✅ ON / ⏸️ OFF]
 - Debug: [✅ ON / OFF]
 
 Prerequisites:
 ✅ Auto-push is enabled (required for yolo mode)
+
+[If deployment method is auto and MCP is available:]
+⚡ Lovable MCP detected - will use MCP for faster deployments
+   Tip: Use /lovable:yolo on --mcp to lock in MCP mode
+
+[If deployment method is auto and MCP is NOT available:]
+💡 Lovable MCP not connected - using browser automation
+   For faster, more reliable deployments: /lovable:connect-mcp
 
 Workflow:
 1. You ask me to make changes
@@ -176,7 +216,7 @@ Workflow:
 4. Yolo mode: I detect backend changes and auto-deploy to Lovable
 
 [if testing on] - Run 3 levels of verification tests
-[if debug on] - Show verbose browser automation details
+[if debug on] - Show verbose automation details
 
 Operations automated:
 ✅ Automatic deployment detection after git push
@@ -184,7 +224,7 @@ Operations automated:
 ✅ Migration application
 
 To disable yolo mode: /yolo off
-To change settings: /yolo on --no-testing  or  /yolo on --debug
+To change settings: /yolo on --mcp  or  /yolo on --no-testing  or  /yolo on --debug
 ```
 
 ### 3. When Disabling Yolo Mode (`/yolo off`)
@@ -222,17 +262,26 @@ To re-enable yolo mode: /yolo on
 
 1. Read CLAUDE.md
 2. Check if yolo mode section exists
-3. Display current configuration:
+3. Check if Lovable MCP tools are available
+4. Display current configuration:
 
 If yolo mode is ON:
 ```
 ## Yolo Mode Configuration
 
 Status: ✅ ENABLED
+Deployment Method: [auto / mcp / browser]
+MCP Connection: [✅ Connected / ❌ Not connected]
 Auto-Deploy: [✅ ON / ⏸️ OFF] (auto-deploy after git push)
 Testing: ✅ ON (runs 3 verification levels)
 Debug: OFF
 Last updated: 2025-01-03 10:30:00
+
+Active deployment strategy:
+[If method=auto and MCP connected]:   ⚡ MCP (with browser fallback)
+[If method=auto and MCP not connected]: 🌐 Browser automation
+[If method=mcp]:                       🔌 MCP only
+[If method=browser]:                   🌐 Browser only
 
 Operations automated:
 - Edge function deployment
@@ -244,17 +293,13 @@ How it works:
 - I'll automatically detect and deploy them
 - No need to run /deploy-edge manually!
 
-[if auto-deploy off]
-How it works:
-- Run /deploy-edge or /apply-migration
-- I'll navigate to Lovable and submit prompts
-- Verify deployments succeed
-
 To modify:
-/yolo off                 # Disable
-/yolo on --no-auto-deploy # Require manual deploy commands
-/yolo on --no-testing     # Skip testing
-/yolo on --debug          # Enable debug output
+/yolo off                # Disable
+/yolo on --mcp           # Force MCP mode
+/yolo on --browser       # Force browser mode
+/yolo on --no-testing    # Skip testing
+/yolo on --debug         # Enable debug output
+/lovable:connect-mcp     # Connect Lovable MCP
 ```
 
 If yolo mode is OFF or not configured:
@@ -263,7 +308,7 @@ If yolo mode is OFF or not configured:
 
 Status: ⏸️ DISABLED
 
-Yolo mode automates Lovable prompt submission using browser automation.
+Yolo mode automates Lovable prompt submission using MCP or browser automation.
 
 Benefits:
 ✅ Auto-deploy after git push - no manual commands needed
@@ -271,11 +316,32 @@ Benefits:
 ✅ Automatic deployment verification
 ✅ Saves time on every deployment
 
+Deployment options:
+⚡ Lovable MCP (recommended) - /lovable:connect-mcp  then  /yolo on --mcp
+🌐 Browser automation (fallback) - requires Chrome extension
+
 To enable: /yolo on
 To learn more: Check README.md or ask "What is yolo mode?"
 ```
 
 ### 5. Handling Flags
+
+**`--mcp` flag:**
+- Set `Deployment Method: mcp` in CLAUDE.md
+- Use Lovable MCP only for deployments
+- If MCP not available, show manual prompt (skip browser automation)
+- Recommended when user has set up Lovable MCP connection
+
+**`--browser` flag:**
+- Set `Deployment Method: browser` in CLAUDE.md
+- Use browser automation only (legacy behavior)
+- Skip MCP even if available
+- Useful if user prefers the old behavior
+
+**`--auto` flag (default):**
+- Set `Deployment Method: auto` in CLAUDE.md
+- Try MCP first, fall back to browser if not available
+- Best of both worlds
 
 **`--testing` flag (default):**
 - Set `Deployment Testing: on` in CLAUDE.md
@@ -291,10 +357,9 @@ To learn more: Check README.md or ask "What is yolo mode?"
 
 **`--debug` flag:**
 - Set `Debug Mode: on` in CLAUDE.md
-- During browser automation, output verbose logs:
-  - Each navigation step
-  - Element selectors used
-  - Wait times and conditions
+- During automation, output verbose logs:
+  - MCP: tool calls, parameters, response text
+  - Browser: each navigation step, selectors, wait times
   - Full response text from Lovable
 
 ### 6. Error Handling
@@ -311,13 +376,15 @@ CLAUDE.md not found. Initialize the project first:
 ```
 ❌ Invalid syntax
 
-Usage: /yolo [on|off] [--auto-deploy|--no-auto-deploy] [--testing|--no-testing] [--debug]
+Usage: /yolo [on|off] [--mcp|--browser|--auto] [--testing|--no-testing] [--debug]
 
 Examples:
   /yolo                    # Show status
-  /yolo on                 # Enable with auto-deploy and testing
-  /yolo on --no-auto-deploy # Enable without auto-deploy
-  /yolo on --debug         # Enable with debug logs
+  /yolo on                 # Enable with auto method and testing
+  /yolo on --mcp           # Enable using Lovable MCP
+  /yolo on --browser       # Enable using browser automation
+  /yolo on --no-testing    # Enable without verification tests
+  /yolo on --debug         # Enable with verbose logs
   /yolo off                # Disable
 ```
 
@@ -354,44 +421,39 @@ See `/skills/yolo/references/post-push-automation.md` for auto-deploy implementa
 
 ## Example Outputs
 
-### Example 1: First-time Enable
+### Example 1: First-time Enable (MCP connected)
 
 ```
 $ /yolo on
 
 ⚠️ YOLO MODE (BETA)
 
-This feature uses browser automation to automatically submit Lovable prompts.
+Deployment method: Lovable MCP (connected)
 
 Benefits:
 ✅ Auto-deploy after git push - no manual /deploy-edge command needed
 ✅ No manual copy-paste of prompts
-✅ Automatic deployment verification
-✅ Saves time on every deployment
+✅ Fast API-based deployments (3-5x faster than browser)
+✅ No Chrome extension required
 
 Risks:
 ⚠️ Beta feature - may have bugs
-⚠️ Requires Chrome extension and browser session
-⚠️ Lovable UI changes may break automation
-⚠️ Always has manual fallback if automation fails
+⚠️ Uses Lovable credits for each send_message call
 
 Continue enabling yolo mode? yes
-
-What is your Lovable project URL?
-(e.g., https://lovable.dev/projects/abc123)
-> https://lovable.dev/projects/my-project
 
 ✅ Yolo mode ENABLED
 
 Configuration:
-- Auto-Deploy: ✅ ON (deploy automatically after git push)
+- Deployment Method: auto (MCP detected)
 - Testing: ✅ ON
 - Debug: OFF
 
+⚡ Lovable MCP detected - will use MCP for faster deployments
+
 From now on, after you push backend changes to main:
 - I'll automatically detect edge function or migration changes
-- Navigate to your Lovable project
-- Submit the deployment prompts for you
+- Submit deployment prompts via Lovable MCP
 - No need to run /deploy-edge manually!
 - Run 3 levels of verification tests
 
@@ -402,32 +464,33 @@ Operations automated:
 To disable: /yolo off
 ```
 
-### Example 2: Enable Without Auto-Deploy
+### Example 2: First-time Enable (no MCP)
 
 ```
-$ /yolo on --no-auto-deploy
+$ /yolo on
 
 ⚠️ YOLO MODE (BETA)
-[... beta warning ...]
+
+Deployment method: Browser automation (MCP not connected)
+...
+💡 Tip: Connect Lovable MCP for faster, more reliable automation:
+   Run: /lovable:connect-mcp
 
 Continue enabling yolo mode? yes
 
 ✅ Yolo mode ENABLED
 
 Configuration:
-- Auto-Deploy: ⏸️ OFF (run /deploy-edge manually)
+- Deployment Method: auto (browser fallback)
 - Testing: ✅ ON
 - Debug: OFF
-
-When you run /deploy-edge or /apply-migration:
-- I'll navigate to Lovable and submit prompts
-- Run verification tests
 
 Operations automated:
 ✅ Edge function deployment
 ✅ Migration application
 
-To enable auto-deploy: /yolo on --auto-deploy
+To enable MCP: /lovable:connect-mcp
+To disable: /yolo off
 ```
 
 ### Example 3: Enable Without Testing
