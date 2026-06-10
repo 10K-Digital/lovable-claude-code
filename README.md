@@ -9,6 +9,7 @@ Stop copy-pasting between Lovable and Claude. Stop wrestling with two-way sync. 
 ### **What You Get:**
 
 ✨ **Edit Lovable projects right in your IDE** with all of Claude Code's power
+🔌 **Lovable MCP integration** - deploy via API instead of browser (NEW in v1.8.0!)
 🗺️ **Project Structure Map** - Claude navigates your codebase faster (NEW in v1.7.0!)
 ⚡ **Auto-push to GitHub** - automatic commit and push after every task
 🚀 **Auto-deploy to Lovable** - no manual commands needed
@@ -81,14 +82,15 @@ Claude Code: Creates the code, detects needed secrets
         ✅ Pushes to GitHub
              ↓
 Claude: 🤖 Detects backend changes automatically
-        🤖 Navigates to Lovable
-        ✅ Submits deployment
+        🔌 Submits via Lovable MCP (or browser automation)
+        ✅ Confirms deployment
         ✅ Runs verification tests
-        ✅ Confirms success
+        ✅ Reports success
 
 Done. Zero manual work. No git commands. No deploy commands!
 ```
 
+**NEW in v1.8.0:** Lovable MCP integration - deploy via API instead of browser (3-5x faster, no Chrome extension)!
 **IMPROVED in v1.5.0:** Hook-based auto-push for 100% reliable automatic commits and pushes!
 **NEW in v1.3.0:** With auto-deploy enabled, Claude automatically deploys to Lovable after git push!
 
@@ -113,11 +115,21 @@ Automatically commits and pushes when Claude finishes any task. No manual git co
 
 **Why hooks?** Hooks guarantee execution every time, making sync operations more reliable than skill-based approaches. Auto-sync keeps you current, auto-push keeps GitHub current!
 
+### 🔌 **Lovable MCP Integration** (NEW in v1.8.0!)
+Connect the official Lovable MCP server for API-based deployments - no browser required.
+
+```bash
+/lovable:connect-mcp    # Set up once (guided wizard)
+/lovable:yolo on --mcp  # Enable MCP-powered yolo mode
+```
+
+**Benefits:** 3-5x faster, no Chrome extension, works anywhere, not affected by UI changes.
+
 ### 🚀 **Auto-Deploy to Lovable** (v1.3.0)
 Push backend changes to main, and Claude automatically deploys to Lovable. No commands, no copy-paste, no context switching.
 
 ```
-Auto-push to GitHub → Claude detects changes → Automatic deployment → Tests pass → Done!
+Auto-push to GitHub → Claude detects changes → Automatic deployment (MCP or browser) → Tests pass → Done!
 ```
 
 **Complete automation:** With both features enabled, Claude handles everything from code changes to production deployment!
@@ -167,7 +179,8 @@ cp -r lovable-plugin/skills your-project/.claude/skills
 Before you start, make sure you have:
 - ✅ Your Lovable project with GitHub sync enabled ([docs](https://docs.lovable.dev/integrations/github#about-github))
 - ✅ Claude Code configured with your GitHub repo
-- ✅ (Optional) [Claude in Chrome extension](https://chrome.google.com/webstore/detail/claude/pebppomjfocnoigkeepgbmcifnnlndla) for yolo mode
+- ✅ (Optional, recommended) Lovable MCP for yolo mode - run `/lovable:connect-mcp` to set up
+- ✅ (Alternative) [Claude in Chrome extension](https://chrome.google.com/webstore/detail/claude/pebppomjfocnoigkeepgbmcifnnlndla) for browser-based yolo mode
 
 ---
 

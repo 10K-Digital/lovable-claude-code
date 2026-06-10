@@ -171,10 +171,37 @@ Any project conventions or special instructions?
 ```
 
 ### Question 11: Yolo Mode (Beta)
-```
-⚠️ YOLO MODE (BETA) - Browser Automation for Lovable
 
-This feature can automatically submit Lovable prompts using browser automation.
+**First, check if Lovable MCP tools are available.** Then show the appropriate prompt:
+
+**If Lovable MCP is connected:**
+```
+⚠️ YOLO MODE (BETA) - Automated Lovable Deployments
+
+Lovable MCP is connected! Yolo mode can submit deployment prompts
+directly via API - no browser automation needed.
+
+Benefits:
+✅ No manual copy-paste needed
+✅ Fast API-based deployments (3-5x faster than browser)
+✅ Automatic deployment verification
+✅ No Chrome extension required
+✅ Auto-run tests after every GitHub push (if enabled)
+
+Risks:
+⚠️ Beta feature - may have bugs
+⚠️ Uses Lovable credits for each deployment
+⚠️ Always has manual fallback if automation fails
+
+Enable yolo mode with MCP? (yes/no)
+Default: no
+```
+
+**If Lovable MCP is NOT connected:**
+```
+⚠️ YOLO MODE (BETA) - Automated Lovable Deployments
+
+This feature can automatically submit Lovable prompts.
 
 Benefits:
 ✅ No manual copy-paste needed
@@ -182,10 +209,13 @@ Benefits:
 ✅ Saves time on every deployment
 ✅ Auto-run tests after every GitHub push (if enabled)
 
+Deployment methods available:
+⚡ Lovable MCP (recommended, faster) - Setup later with /lovable:connect-mcp
+🌐 Browser automation (fallback) - Requires Chrome extension
+
 Risks:
 ⚠️ Beta feature - may have bugs
-⚠️ Requires Chrome extension (Claude in Chrome)
-⚠️ Lovable UI changes may break automation
+⚠️ Browser automation requires Chrome extension (Claude in Chrome)
 ⚠️ Always has manual fallback if automation fails
 
 Enable yolo mode? (yes/no)
@@ -335,10 +365,11 @@ When enabled, I'll automatically commit and push changes after each successful t
 ## Yolo Mode Configuration (Beta)
 [ONLY include if user enabled yolo mode]
 
-> ⚠️ Beta feature - uses browser automation to auto-submit Lovable prompts
+> ⚠️ Beta feature - auto-submits Lovable prompts via MCP or browser automation
 > ⚠️ Requires auto-push to be enabled
 
 - **Status**: [on/off based on Q11 answer]
+- **Deployment Method**: [mcp if MCP was connected at init time; auto otherwise]
 - **Deployment Testing**: [on/off based on Q12 answer, default: on]
 - **Auto-run Tests**: [on/off - run tests after every git push]
 - **Debug Mode**: off
@@ -349,20 +380,21 @@ When enabled, I'll automatically commit and push changes after each successful t
   - Migration application
   - Automated testing after code push
 
-**Configure:** Run `/lovable:yolo on/off [--testing|--no-testing] [--debug]`
+**Configure:** Run `/lovable:yolo on/off [--mcp|--browser|--auto] [--testing|--no-testing] [--debug]`
+**Connect MCP:** Run `/lovable:connect-mcp` for faster API-based automation
 
 **How yolo mode works:**
-- When yolo mode is on, after auto-push completes, I'll automatically navigate to Lovable and submit deployment prompts
+- **Deployment Method: auto** - Tries Lovable MCP first, falls back to browser automation
+- When yolo mode is on, after auto-push completes, I'll automatically submit deployment prompts
 - Deployment testing verifies deployments (3 levels: basic, console errors, functional)
 - Auto-run tests execute your project's test suite after every git push
-- Debug mode shows detailed browser automation logs
 - Always has manual fallback if automation fails
 
 **Workflow with both enabled:**
 1. You ask me to make changes
 2. I complete the task successfully
 3. Auto-push: I commit and push to GitHub
-4. Yolo mode: I detect backend changes and auto-deploy to Lovable
+4. Yolo mode: I detect backend changes and auto-deploy to Lovable (via MCP or browser)
 5. Done - zero manual commands needed!
 
 ## Quick Prompts
