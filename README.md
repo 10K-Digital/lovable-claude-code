@@ -9,6 +9,7 @@ Stop copy-pasting between Lovable and Claude. Stop wrestling with two-way sync. 
 ### **What You Get:**
 
 ✨ **Edit Lovable projects right in your IDE** with all of Claude Code's power
+🏗️ **Dual-architecture support** - works with both Vite SPA and TanStack Start (SSR) projects (NEW in v1.8.1!)
 🔌 **Lovable MCP integration** - deploy via API instead of browser (NEW in v1.8.0!)
 🗺️ **Project Structure Map** - Claude navigates your codebase faster (NEW in v1.7.0!)
 ⚡ **Auto-push to GitHub** - automatic commit and push after every task
@@ -340,11 +341,28 @@ Plus: No more mistakes from copy-paste errors. No more forgotten secrets. No mor
 
 ## **What Gets Synced Automatically**
 
+> **Note:** Lovable now supports two architectures. New projects (post-April 2026) use **TanStack Start (SSR)**; older projects use **Vite SPA**. The plugin detects this automatically.
+
+### Vite SPA projects (`vite.config.ts`)
+
 | What | Auto-Syncs | Next Step |
 |------|-----------|-----------|
-| React components | ✅ Yes | Just push to GitHub |
+| React components (`src/`) | ✅ Yes | Just push to GitHub |
 | Styling/CSS | ✅ Yes | Just push to GitHub |
-| Edge Function code | ⚠️ Partially | Also run `/lovable:deploy-edge` |
+| Supabase Edge Function code | ⚠️ Partially | Also run `/lovable:deploy-edge` |
+| Database migrations | ⚠️ Partially | Also run `/lovable:apply-migration` |
+| New tables | ❌ No | Use Lovable Cloud UI |
+| RLS policies | ❌ No | Use Lovable Cloud UI |
+| Secrets | ❌ No | Use Lovable Cloud UI |
+
+### TanStack Start projects (`app.config.ts`)
+
+| What | Auto-Syncs | Next Step |
+|------|-----------|-----------|
+| React components (`app/`) | ✅ Yes | Just push to GitHub |
+| TanStack server functions (`*.server.ts`) | ✅ Yes | Just push to GitHub — no deploy prompt needed! |
+| Styling/CSS | ✅ Yes | Just push to GitHub |
+| Supabase Edge Function code | ⚠️ Partially | Also run `/lovable:deploy-edge` |
 | Database migrations | ⚠️ Partially | Also run `/lovable:apply-migration` |
 | New tables | ❌ No | Use Lovable Cloud UI |
 | RLS policies | ❌ No | Use Lovable Cloud UI |
@@ -430,7 +448,19 @@ Edit `CLAUDE.md` to customize anything—Claude Code reads and respects your con
 
 ## **Version History**
 
-**v1.7.0** (Latest) ⭐
+**v1.8.1** (Latest) ⭐
+- **TanStack Start (SSR) support** - plugin now understands Lovable's new architecture
+  - Auto-detects project type: Vite SPA (`vite.config.ts`) vs TanStack Start (`app.config.ts`)
+  - Knows that TanStack server functions (`*.server.ts`) auto-deploy — no Lovable prompt needed
+  - Separate structure maps, workflow rules, and scanning for each architecture
+  - Fully backward-compatible: Vite SPA projects unaffected
+
+**v1.8.0**
+- **Lovable MCP integration** - deploy via API instead of browser (3-5x faster, no Chrome extension)
+  - New `/lovable:connect-mcp` command for guided MCP setup
+  - 3-tier priority: MCP → browser automation → manual prompt
+
+**v1.7.0**
 - **Project Structure Map** - Claude navigates your codebase faster!
   - New `/lovable:map` command for generating/updating maps
   - Integrated into `/lovable:init` (optional question)
